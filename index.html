@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>لوحة التحكم — Hdour و E3taty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f172a; --card:#1e293b; --card2:#273449; --text:#e8eefc; --muted:#94a3b8; --line:#334155;
+  --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --acc:#60a5fa; --shadow:0 6px 24px rgba(0,0,0,.28);
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f1f5f9; --card:#ffffff; --card2:#f1f5f9; --text:#0f172a; --muted:#64748b; --line:#e2e8f0; --ok:#059669; --warn:#b45309; --bad:#dc2626; --shadow:0 6px 24px rgba(15,23,42,.08); }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;line-height:1.55}
+body{min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:900px;margin:0 auto;padding:16px 14px 60px}
+h1{font-size:1.5rem;margin:6px 0 2px;font-weight:800}
+.muted{color:var(--muted);font-size:.9rem}
+.top{padding:18px 4px 10px}
+.grid2{display:grid;grid-template-columns:1fr;gap:14px;margin-top:10px}
+@media(min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
+.svc-card{all:unset;box-sizing:border-box;cursor:pointer;display:block;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;border-top:5px solid var(--acc);transition:transform .15s}
+.svc-card:active{transform:scale(.98)}
+.svc-card .em{font-size:2.4rem}
+.svc-card h2{margin:6px 0 0;font-size:1.3rem}
+.svc-card .st{margin-top:10px;font-size:.9rem;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.78rem;white-space:nowrap}
+.badge.acc{background:color-mix(in srgb,var(--acc) 18%,transparent);border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
+.badge.ok{color:var(--ok)} .badge.warn{color:var(--warn)} .badge.bad{color:var(--bad)}
+.notif{position:absolute;top:14px;left:14px;background:var(--bad);color:#fff;border-radius:999px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;padding:0 8px}
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.bar .grow{flex:1;min-width:120px}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 14px;font-weight:600}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#0b1220}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#06251b}
+.btn.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn.sm{padding:5px 10px;font-size:.85rem;border-radius:10px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:12px}
+.tab{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:9px 6px;border-radius:10px;font-weight:700;font-size:.92rem;position:relative}
+.tab.on{background:var(--acc);color:#0b1220}
+.tab .dot{background:var(--bad);color:#fff;border-radius:999px;font-size:.72rem;padding:0 7px;margin-inline-start:4px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
+.period{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=email],input[type=password],input[type=search],input[type=datetime-local],select{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0;max-width:100%}
+input[type=search],input[type=text]{width:100%}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-size:.85rem;color:var(--muted)}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.toolbar .full{grid-column:1/-1}
+@media(min-width:640px){.toolbar{grid-template-columns:2fr 1fr 1fr 1fr}.toolbar .full{grid-column:auto}}
+.item{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.row{display:flex;gap:12px;align-items:center;padding:12px;cursor:pointer}
+.rank{width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;flex:none}
+.rank.t1{background:#fbbf24;color:#3b2a00}.rank.t2{background:#cbd5e1;color:#1e293b}.rank.t3{background:#fdba74;color:#4a2300}
+.avatar{width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--acc) 25%,var(--card2));display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.grow{flex:1;min-width:0}
+.name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.detail{border-top:1px dashed var(--line);padding:12px;background:var(--card2)}
+.kv{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px}
+@media(min-width:560px){.kv{grid-template-columns:1fr 1fr}}
+.kv div{font-size:.9rem}.kv b{color:var(--muted);font-weight:600;margin-inline-end:6px}
+.day{margin:14px 4px 6px;font-weight:800;font-size:.9rem;color:var(--muted)}
+.act{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);align-items:flex-start}
+.act:last-child{border-bottom:0}
+.act .tm{font-size:.8rem;color:var(--muted);min-width:46px;padding-top:3px;direction:ltr;text-align:left}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle;margin-inline-end:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast div{background:#0b1220;color:#fff;border-radius:12px;padding:10px 16px;box-shadow:var(--shadow);font-size:.92rem;max-width:90vw}
+#toast div.err{background:#b91c1c}
+.login{max-width:420px;margin:40px auto 0;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);border-top:5px solid var(--acc)}
+.err{color:var(--bad);font-size:.9rem;margin:6px 0}
+.note{font-size:.8rem;color:var(--muted);margin-top:8px}
+.link{color:var(--acc);text-decoration:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, updateDoc, deleteDoc, arrayRemove, arrayUnion, Timestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ================= الإعدادات ================= */
+const SESSION_GAP_MIN = 15;     // أنشطة بينها أقل من 15 دقيقة = نفس الجلسة (لتقدير الوقت)
+const SESSION_PAD_MIN = 2;      // بنزوّد دقيقتين على كل جلسة (آخر نشاط مش آخر لحظة في الجلسة)
+const PAGE = 1000, MAX_LOGS = 6000;
+const SERVANTS_CLASS_ID = '__servants__';
+
+const SERVICES = {
+  hdour: {
+    id:'hdour', title:'خدمة ابتدائي', sub:'Hdour', emoji:'🧒', acc:'#60a5fa', fem:false, wMany:'الخدام', wOne:'خادم',
+    cfg:{ apiKey:"AIzaSyBWK4y1GjEBXMrzgKu3Hm3sSG5sd2ympEI", authDomain:"hdour-d66d8.firebaseapp.com", projectId:"hdour-d66d8",
+          storageBucket:"hdour-d66d8.firebasestorage.app", messagingSenderId:"877333539513", appId:"1:877333539513:web:5e36ff0a09a2924ae64968" },
+    rc:'6LfZEcYtAAAAAPAX04C1QJAGkoB1MV8MbJuNRF2a', worker:'https://hdour-push.devidemele.workers.dev'
+  },
+  e3taty: {
+    id:'e3taty', title:'خدمة إعدادي', sub:'E3taty', emoji:'👧', acc:'#f472b6', fem:true, wMany:'الخادمات', wOne:'خادمة',
+    cfg:{ apiKey:"AIzaSyCluCLDVy4ojnqI4XFCbsRFL8gH1GKjnzI", authDomain:"e3taty.firebaseapp.com", projectId:"e3taty",
+          storageBucket:"e3taty.firebasestorage.app", messagingSenderId:"759314140537", appId:"1:759314140537:web:f27c8bedfc06ad13b373a8" },
+    rc:'6Le_8uktAAAAACBWXqGADoPshcKYYGh2Fv22tdd4', worker:'https://e3taty-push.devidemele.workers.dev'
+  }
+};
+
+const isLocal = ['localhost','127.0.0.1','::1'].includes(location.hostname);
+for (const s of Object.values(SERVICES)) {
+  s.app = initializeApp(s.cfg, 'dash-' + s.id);
+  if (!isLocal) { try { initializeAppCheck(s.app, { provider:new ReCaptchaEnterpriseProvider(s.rc), isTokenAutoRefreshEnabled:true }); } catch(e) { console.warn('appcheck', s.id, e); } }
+  s.auth = getAuth(s.app);
+  s.db = getFirestore(s.app);
+  s.user = null; s.admin = false; s.authReady = false; s.authError = '';
+  s.servants = []; s.servantsLoaded = false;
+  s.classes = new Map(); s.roles = new Map();
+  s.logs = []; s.logsKey = ''; s.logsCapped = false; s.stats = new Map();
+  s.requests = []; s.requestsLoaded = false; s.pending = null;
+  s.period = { preset:'30', from:'', to:'' };
+  s.ui = { tab:'servants', sort:'usage', q:'', role:'', cls:'', expanded:null, actServant:'', actAction:'', actQ:'', actShown:200, busy:{} };
+}
+
+/* ================= أدوات ================= */
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LOC = 'ar-EG-u-nu-latn';
+const fmtDate = d => d ? d.toLocaleDateString(LOC, { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : '—';
+const fmtShortDate = d => d ? d.toLocaleDateString(LOC, { day:'numeric', month:'short', year:'numeric' }) : '—';
+const fmtTime = d => d ? d.toLocaleTimeString(LOC, { hour:'2-digit', minute:'2-digit', hour12:true }) : '';
+const fmtDateTime = d => d ? fmtShortDate(d) + ' — ' + fmtTime(d) : '—';
+const fmtDur = m => { m = Math.round(m); if (m < 1) return '—'; if (m < 60) return m + ' د'; const h = Math.floor(m/60), r = m % 60; return h + ' س' + (r ? ' ' + r + ' د' : ''); };
+const toDate = t => t && typeof t.toDate === 'function' ? t.toDate() : (t instanceof Date ? t : null);
+const dayKey = d => d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+const toInputDT = d => { const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); };
+
+function toast(msg, err) {
+  const el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg;
+  $('#toast').appendChild(el); setTimeout(() => el.remove(), 3600);
+}
+function authMsg(e) {
+  const c = e && e.code || '';
+  if (/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c)) return 'الإيميل أو الباسورد غلط';
+  if (/too-many-requests/.test(c)) return 'محاولات كتير — استنى شوية وجرّب تاني';
+  if (/network/.test(c)) return 'مشكلة في الإنترنت';
+  return 'تعذّر تسجيل الدخول' + (c ? ' (' + c + ')' : '');
+}
+
+/* ================= الدخول والتحقق من الأدمن ================= */
+async function verifyAdmin(s, user) {
+  try {
+    const snap = await getDoc(doc(s.db, 'servants', user.uid));
+    const d = snap.exists() ? snap.data() : null;
+    return !!(d && d.status === 'approved' && d.role === 'admin');
+  } catch (e) { console.error('verifyAdmin', s.id, e); return false; }
+}
+function watchAuth(s) {
+  return new Promise(res => {
+    let first = true;
+    onAuthStateChanged(s.auth, async user => {
+      if (user) {
+        const ok = await verifyAdmin(s, user);
+        if (ok) { s.user = user; s.admin = true; s.authError = ''; }
+        else { s.user = null; s.admin = false; s.authError = 'الحساب ده مش أدمن معتمد في ' + s.title; try { await signOut(s.auth); } catch(_){} }
+      } else { s.user = null; s.admin = false; }
+      s.authReady = true;
+      if (first) { first = false; res(); } else if (state.v === 'home') renderHome();
+    });
+  });
+}
+
+/* ================= تحميل البيانات ================= */
+async function loadBase(s, force) {
+  if (s.servantsLoaded && !force) return;
+  const [cs, rs, ss] = await Promise.all([
+    getDocs(collection(s.db, 'classes')),
+    getDocs(collection(s.db, 'roles')).catch(() => null),
+    getDocs(collection(s.db, 'servants'))
+  ]);
+  s.classes = new Map(cs.docs.map(d => [d.id, { id:d.id, ...d.data() }]));
+  s.roles = new Map(rs ? rs.docs.map(d => [d.id, { id:d.id, ...d.data() }]) : []);
+  s.servants = ss.docs.map(d => ({ id:d.id, ...d.data() }));
+  s.servantsLoaded = true;
+}
+function periodRange(s) {
+  const p = s.period, now = new Date();
+  const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (p.preset === 'today') return [startOfDay(now), new Date(now.getTime() + 60000)];
+  if (p.preset === 'custom') {
+    const f = p.from ? new Date(p.from) : null, t = p.to ? new Date(p.to) : null;
+    return [f || new Date(2020,0,1), t || new Date(now.getTime() + 60000)];
+  }
+  if (p.preset === 'all') return [new Date(2020,0,1), new Date(now.getTime() + 60000)];
+  const n = +p.preset || 30; const st = startOfDay(now); st.setDate(st.getDate() - (n - 1));
+  return [st, new Date(now.getTime() + 60000)];
+}
+async function loadLogs(s, force) {
+  const [a, b] = periodRange(s);
+  const key = a.getTime() + '_' + b.getTime();
+  if (!force && s.logsKey === key) return;
+  const out = []; let last = null, capped = false;
+  while (true) {
+    const q = last
+      ? query(collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc'), startAfter(last), limit(PAGE))
+      : query(collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc'), limit(PAGE));
+    const snap = await getDocs(q);
+    snap.docs.forEach(d => { const x = d.data(); out.push({ id:d.id, uid:x.uid || '', name:x.name || '', action:x.action || '', detail:x.detail || '', ts:toDate(x.timestamp) || new Date(0) }); });
+    if (snap.size < PAGE) break;
+    last = snap.docs[snap.docs.length - 1];
+    if (out.length >= MAX_LOGS) { capped = true; break; }
+  }
+  s.logs = out; s.logsKey = key; s.logsCapped = capped;
+  s.stats = computeStats(out);
+}
+function computeStats(logs) {
+  const by = new Map();
+  for (const l of logs) { const k = l.uid || ('n:' + l.name); if (!by.has(k)) by.set(k, []); by.get(k).push(l); }
+  const stats = new Map();
+  for (const [k, arr] of by) {
+    arr.sort((x, y) => x.ts - y.ts);
+    let minutes = 0, sessions = 0, start = arr[0].ts.getTime(), prev = start;
+    const days = new Set(), actions = new Map(); let opens = 0;
+    for (const l of arr) {
+      const t = l.ts.getTime();
+      if ((t - prev) / 60000 > SESSION_GAP_MIN) { minutes += (prev - start) / 60000 + SESSION_PAD_MIN; sessions++; start = t; }
+      prev = t; days.add(dayKey(l.ts));
+      actions.set(l.action, (actions.get(l.action) || 0) + 1);
+      if (l.action === 'فتح التطبيق') opens++;
+    }
+    minutes += (prev - start) / 60000 + SESSION_PAD_MIN; sessions++;
+    stats.set(k, { total:arr.length, opens, work:arr.length - opens, minutes, sessions, days:days.size, last:arr[arr.length - 1].ts, actions });
+  }
+  return stats;
+}
+async function loadRequests(s) {
+  const snap = await getDocs(query(collection(s.db, 'servants'), where('status', '==', 'pending')));
+  s.requests = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+    .sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
+  s.requestsLoaded = true; s.pending = s.requests.length;
+}
+async function countPending(s) {
+  try { const r = await getCountFromServer(query(collection(s.db, 'servants'), where('status', '==', 'pending'))); s.pending = r.data().count; } catch (e) { s.pending = null; }
+}
+
+/* ================= مساعدات العرض ================= */
+const ROLE_LABEL = { admin:'أدمن', supervisor:'مسؤول فصل', servant:null };
+function roleLabel(s, v) { return v.role === 'servant' || !v.role ? s.wOne : ROLE_LABEL[v.role] || v.role; }
+function classLabel(s, id) { if (id === SERVANTS_CLASS_ID) return s.wMany; const c = s.classes.get(id); return c ? ((c.emoji ? c.emoji + ' ' : '') + (c.name || id)) : id; }
+function classIds(raw) { return String(raw || '').split(',').map(x => x.trim()).filter(Boolean); }
+function classesText(s, v) { const ids = classIds(v.assignedClass); if (ids.length) return ids.map(i => classLabel(s, i)).join('، '); return v.role === 'admin' ? 'كل الفصول' : 'بدون فصل'; }
+function roleNames(s, v) { const ids = Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds : (v.roleId ? [v.roleId] : []); return ids.map(i => s.roles.get(i)?.name).filter(Boolean).join('، '); }
+function statFor(s, v) { return s.stats.get(v.id) || null; }
+function waLink(phone) { let d = String(phone || '').replace(/\D/g, ''); if (!d) return ''; if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '20' + d.slice(1); return 'https://wa.me/' + d; }
+function periodText(s) { const [a, b] = periodRange(s); const e = new Date(b.getTime() - 60000); return fmtShortDate(a) + ' ← ' + fmtShortDate(e); }
+
+/* ================= التنقل (زر الرجوع بيرجع خطوة) ================= */
+const state = { v:'home', s:null };
+function go(next, replace) {
+  Object.assign(state, next);
+  history[replace ? 'replaceState' : 'pushState']({ v:state.v, s:state.s }, '');
+  render();
+}
+window.addEventListener('popstate', e => { const h = e.state || { v:'home', s:null }; state.v = h.v; state.s = h.s; render(); });
+const cur = () => state.s ? SERVICES[state.s] : null;
+
+function render() {
+  window.scrollTo(0, 0);
+  if (state.v === 'home') return renderHome();
+  const s = cur(); if (!s) return renderHome();
+  if (!s.admin) return renderLogin(s);
+  return renderService(s);
+}
+
+/* ================= الشاشة الرئيسية ================= */
+function renderHome() {
+  state.v = 'home';
+  $('#app').innerHTML = `<div class="wrap">
+    <div class="top"><h1>📊 لوحة التحكم</h1><div class="muted">اختار الخدمة اللي عايز تتابعها</div></div>
+    <div class="grid2">${Object.values(SERVICES).map(s => `
+      <button class="svc-card" style="--acc:${s.acc}" data-act="open" data-s="${s.id}">
+        ${s.admin && s.pending ? `<span class="notif" id="n-${s.id}">${s.pending}</span>` : `<span class="notif" id="n-${s.id}" style="display:none"></span>`}
+        <div class="em">${s.emoji}</div>
+        <h2>${s.title}</h2>
+        <div class="muted">${s.sub}</div>
+        <div class="st">${s.admin ? '✅ داخل بحساب الأدمن' : '🔒 اضغط لتسجيل الدخول'}</div>
+      </button>`).join('')}
+    </div></div>`;
+  for (const s of Object.values(SERVICES)) if (s.admin) countPending(s).then(() => {
+    const n = $('#n-' + s.id); if (!n) return;
+    if (s.pending) { n.textContent = s.pending; n.style.display = 'flex'; } else n.style.display = 'none';
+  });
+}
+
+/* ================= شاشة الدخول ================= */
+function renderLogin(s) {
+  $('#app').innerHTML = `<div class="wrap"><button class="btn" data-act="home">← رجوع</button>
+    <form class="login" style="--acc:${s.acc}" data-form="login">
+      <div style="font-size:2.2rem">${s.emoji}</div><h1>${s.title}</h1>
+      <div class="muted" style="margin-bottom:14px">سجّل دخول بحساب الأدمن بتاع ${s.sub}</div>
+      <div class="field"><label>الإيميل</label><input type="email" id="lg-email" autocomplete="username" value="devidemele@gmail.com" required></div>
+      <div class="field"><label>الباسورد</label><input type="password" id="lg-pass" autocomplete="current-password" required></div>
+      <div class="err" id="lg-err">${esc(s.authError)}</div>
+      <button class="btn pri" style="width:100%" id="lg-btn">دخول</button>
+      <div class="note"><a href="#" class="link" data-act="reset">نسيت الباسورد؟</a></div>
+    </form></div>`;
+  $('#lg-pass').focus();
+}
+async function doLogin(s) {
+  const email = $('#lg-email').value.trim(), pass = $('#lg-pass').value, btn = $('#lg-btn'), err = $('#lg-err');
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'جاري الدخول…';
+  try {
+    const cred = await signInWithEmailAndPassword(s.auth, email, pass);
+    const ok = await verifyAdmin(s, cred.user);
+    if (!ok) { await signOut(s.auth); s.authError = 'الحساب ده مش أدمن معتمد في ' + s.title; err.textContent = s.authError; btn.disabled = false; btn.textContent = 'دخول'; return; }
+    s.user = cred.user; s.admin = true; s.authError = '';
+    render();
+  } catch (e) { err.textContent = authMsg(e); btn.disabled = false; btn.textContent = 'دخول'; }
+}
+async function doReset(s) {
+  const email = $('#lg-email').value.trim(); if (!email) { toast('اكتب الإيميل الأول', true); return; }
+  try { await sendPasswordResetEmail(s.auth, email); toast('اتبعتلك رابط تغيير الباسورد على الإيميل'); } catch (e) { toast('تعذّر إرسال الرابط', true); }
+}
+
+/* ================= شاشة الخدمة ================= */
+function renderService(s) {
+  const ui = s.ui, p = s.period, showPeriod = ui.tab !== 'requests';
+  $('#app').innerHTML = `<div class="wrap" style="--acc:${s.acc}">
+    <div class="bar">
+      <button class="btn sm" data-act="home">← الرئيسية</button>
+      <div class="grow"><b style="font-size:1.15rem">${s.emoji} ${s.title}</b> <span class="muted">· ${s.sub}</span></div>
+      <button class="btn sm" data-act="refresh">🔄 تحديث</button>
+      <button class="btn sm bad" data-act="logout">خروج</button>
+    </div>
+    <div class="tabs">
+      <button class="tab ${ui.tab === 'servants' ? 'on' : ''}" data-act="tab" data-t="servants">👥 ${s.wMany}</button>
+      <button class="tab ${ui.tab === 'activity' ? 'on' : ''}" data-act="tab" data-t="activity">📋 الأنشطة</button>
+      <button class="tab ${ui.tab === 'requests' ? 'on' : ''}" data-act="tab" data-t="requests">📨 الطلبات${s.pending ? `<span class="dot">${s.pending}</span>` : ''}</button>
+    </div>
+    ${showPeriod ? `<div class="panel">
+      <div class="period">
+        <span class="muted">الفترة:</span>
+        <select data-sel="p.preset">
+          ${[['today','النهارده'],['7','آخر 7 أيام'],['30','آخر 30 يوم'],['90','آخر 90 يوم'],['all','كل الفترة'],['custom','فترة مخصصة']].map(([v, l]) => `<option value="${v}" ${p.preset === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        ${p.preset === 'custom' ? `
+          <span class="muted">من</span><input type="datetime-local" data-sel="p.from" value="${esc(p.from)}">
+          <span class="muted">إلى</span><input type="datetime-local" data-sel="p.to" value="${esc(p.to)}">
+          <button class="btn sm pri" data-act="applyPeriod">تطبيق</button>` : ''}
+      </div>
+      <div class="note">${periodText(s)}</div>
+    </div>` : ''}
+    <div id="tabbody"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
+  </div>`;
+  loadTab(s);
+}
+async function loadTab(s) {
+  const tab = s.ui.tab, token = ++loadTab.n;
+  try {
+    if (tab === 'requests') { await loadBase(s); await loadRequests(s); }
+    else { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) await loadLogs(s); }
+  } catch (e) {
+    console.error(e);
+    if (token === loadTab.n) $('#tabbody').innerHTML = `<div class="empty">تعذّر تحميل البيانات.<br><span class="muted">${esc(e.code || e.message || '')}</span><div class="note">لو المشكلة في الصلاحيات أو App Check، تأكد إن اللوحة مرفوعة على نفس الدومين teto550.github.io.</div></div>`;
+    return;
+  }
+  if (token !== loadTab.n) return;
+  renderTabBody();
+  if (s.pending == null) countPending(s).then(() => {
+    const t = document.querySelector('.tab[data-t="requests"]');
+    if (cur() === s && t && s.pending && !t.querySelector('.dot')) t.insertAdjacentHTML('beforeend', `<span class="dot">${s.pending}</span>`);
+  });
+}
+loadTab.n = 0;
+
+function renderTabBody() {
+  const s = cur(); if (!s || !s.admin) return;
+  const body = $('#tabbody'); if (!body) return;
+  if (s.ui.tab === 'servants') body.innerHTML = servantsView(s);
+  else if (s.ui.tab === 'activity') body.innerHTML = activityView(s);
+  else body.innerHTML = requestsView(s);
+}
+
+/* ---------- تبويب الخدام ---------- */
+function servantsView(s) {
+  const ui = s.ui;
+  const classOpts = [...s.classes.values()].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return `
+    <div class="toolbar">
+      <input class="full" type="search" placeholder="🔍 ابحث بالاسم / الإيميل / التليفون" data-q="q" value="${esc(ui.q)}">
+      <select data-sel="sort">
+        ${[['usage','الأكتر استخدامًا'],['time','الأطول وقتًا'],['last','آخر نشاط'],['name','الاسم'],['joined','تاريخ التسجيل']].map(([v, l]) => `<option value="${v}" ${ui.sort === v ? 'selected' : ''}>ترتيب: ${l}</option>`).join('')}
+      </select>
+      <select data-sel="role">
+        <option value="">كل الأدوار</option>
+        <option value="admin" ${ui.role === 'admin' ? 'selected' : ''}>أدمن</option>
+        <option value="supervisor" ${ui.role === 'supervisor' ? 'selected' : ''}>مسؤول فصل</option>
+        <option value="servant" ${ui.role === 'servant' ? 'selected' : ''}>${s.wOne}</option>
+      </select>
+      <select data-sel="cls">
+        <option value="">كل الفصول</option>
+        ${classOpts.map(c => `<option value="${esc(c.id)}" ${ui.cls === c.id ? 'selected' : ''}>${esc((c.emoji ? c.emoji + ' ' : '') + (c.name || c.id))}</option>`).join('')}
+      </select>
+    </div>
+    <div id="listwrap">${servantsList(s)}</div>`;
+}
+function servantsList(s) {
+  const ui = s.ui, q = ui.q.trim().toLowerCase();
+  let list = s.servants.filter(v => v.status === 'approved');
+  if (q) list = list.filter(v => [v.name, v.email, v.phone].some(x => String(x || '').toLowerCase().includes(q)));
+  if (ui.role) list = list.filter(v => (v.role || 'servant') === ui.role);
+  if (ui.cls) list = list.filter(v => classIds(v.assignedClass).includes(ui.cls));
+  const z = { total:0, minutes:0, last:0 };
+  const g = v => statFor(s, v) || z;
+  const sorters = {
+    usage: (a, b) => g(b).total - g(a).total || g(b).minutes - g(a).minutes,
+    time: (a, b) => g(b).minutes - g(a).minutes || g(b).total - g(a).total,
+    last: (a, b) => (g(b).last || 0) - (g(a).last || 0),
+    name: (a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'),
+    joined: (a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0)
+  };
+  list.sort(sorters[ui.sort] || sorters.usage);
+  const active = list.filter(v => statFor(s, v)).length;
+  const totalActs = list.reduce((n, v) => n + g(v).total, 0);
+  const head = `<div class="note" style="margin:0 2px 8px">${list.length} ${s.wMany} · ${active} نشطين في الفترة · ${totalActs} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} نشاط بس — ضيّق الفترة للدقة</span>` : ''}</div>`;
+  if (!list.length) return head + `<div class="empty">مفيش نتايج</div>`;
+  const rankBy = ['usage', 'time', 'last'].includes(ui.sort);
+  return head + list.map((v, i) => servantItem(s, v, rankBy ? i + 1 : null)).join('') +
+    `<div class="note">⏱ الوقت تقديري: البرنامجين مش بيقيسوا وقت التصفح فعليًا، فبنحسبه من توقيتات الأنشطة (الأنشطة المتقاربة أقل من ${SESSION_GAP_MIN} دقيقة = جلسة واحدة). لازم الخادم يفتح البرنامج بنسخته الحالية عشان "فتح التطبيق" يتسجل.</div>`;
+}
+function servantItem(s, v, rank) {
+  const st = statFor(s, v), open = s.ui.expanded === v.id, name = v.name || v.email || '—';
+  const rc = rank === 1 ? 't1' : rank === 2 ? 't2' : rank === 3 ? 't3' : '';
+  const roleB = v.role === 'admin' ? 'acc' : v.role === 'supervisor' ? 'warn' : '';
+  return `<div class="item">
+    <div class="row" data-act="toggle" data-id="${esc(v.id)}">
+      ${rank ? `<div class="rank ${rc}">${rank}</div>` : ''}
+      <div class="avatar">${esc([...name][0] || '?')}</div>
+      <div class="grow">
+        <div class="name">${esc(name)}</div>
+        <div class="chips">
+          <span class="badge ${roleB}">${esc(roleLabel(s, v))}</span>
+          <span class="badge">${esc(classesText(s, v))}</span>
+          ${st ? `<span class="badge ok">🔢 ${st.total} نشاط</span><span class="badge">⏱ ${fmtDur(st.minutes)}</span><span class="badge">📅 ${st.days} يوم</span><span class="badge">🕒 ${fmtDateTime(st.last)}</span>`
+               : `<span class="badge">ما استخدمش في الفترة دي</span>`}
+        </div>
+      </div>
+      <div class="muted">${open ? '▲' : '▼'}</div>
+    </div>
+    ${open ? servantDetail(s, v, st) : ''}
+  </div>`;
+}
+function servantDetail(s, v, st) {
+  const wa = waLink(v.phone);
+  const top = st ? [...st.actions.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8) : [];
+  const rn = roleNames(s, v);
+  return `<div class="detail">
+    <div class="kv">
+      <div><b>📞 التليفون</b>${v.phone ? `<a class="link" href="tel:${esc(v.phone)}">${esc(v.phone)}</a>` : '—'}</div>
+      <div><b>✉️ الإيميل</b>${esc(v.email || '—')}</div>
+      <div><b>🎂 تاريخ الميلاد</b>${esc(v.dob || '—')}</div>
+      <div><b>🏠 العنوان</b>${esc(v.address || '—')}</div>
+      <div><b>📚 الفصول</b>${esc(classesText(s, v))}</div>
+      <div><b>🎭 الدور</b>${esc(roleLabel(s, v))}${rn ? ' · ' + esc(rn) : ''}</div>
+      <div><b>📝 اتسجّل</b>${fmtShortDate(toDate(v.createdAt))}</div>
+      ${st ? `<div><b>🔁 مرات فتح التطبيق</b>${st.opens}</div><div><b>🧩 عدد الجلسات</b>${st.sessions}</div>` : ''}
+    </div>
+    ${top.length ? `<div class="muted" style="margin-bottom:4px">أكتر الأنشطة:</div><div class="chips">${top.map(([a, n]) => `<span class="badge">${esc(a)} · ${n}</span>`).join('')}</div>` : ''}
+    <div class="actions">
+      <button class="btn sm pri" data-act="viewActs" data-id="${esc(v.id)}">📋 عرض كل أنشطته</button>
+      ${wa ? `<a class="btn sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ---------- تبويب الأنشطة ---------- */
+function activityView(s) {
+  const ui = s.ui;
+  const actions = [...new Set(s.logs.map(l => l.action).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
+  const names = new Map(); // uid -> name
+  s.servants.forEach(v => names.set(v.id, v.name || v.email || v.id));
+  s.logs.forEach(l => { const k = l.uid || ('n:' + l.name); if (!names.has(k)) names.set(k, l.name || '—'); });
+  const opts = [...names.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'ar'));
+  return `
+    <div class="toolbar">
+      <select data-sel="actServant"><option value="">كل ${s.wMany}</option>${opts.map(([k, n]) => `<option value="${esc(k)}" ${ui.actServant === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+      <select data-sel="actAction"><option value="">كل أنواع النشاط</option>${actions.map(a => `<option value="${esc(a)}" ${ui.actAction === a ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select>
+      <input class="full" type="search" placeholder="🔍 ابحث في التفاصيل" data-q="actQ" value="${esc(ui.actQ)}">
+    </div>
+    <div id="listwrap">${activityList(s)}</div>`;
+}
+function activityList(s) {
+  const ui = s.ui, q = ui.actQ.trim().toLowerCase();
+  let list = s.logs;
+  if (ui.actServant) list = list.filter(l => (l.uid || ('n:' + l.name)) === ui.actServant);
+  if (ui.actAction) list = list.filter(l => l.action === ui.actAction);
+  if (q) list = list.filter(l => (l.detail + ' ' + l.name + ' ' + l.action).toLowerCase().includes(q));
+  const head = `<div class="note" style="margin:0 2px 8px">${list.length} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} بس — ضيّق الفترة</span>` : ''}</div>`;
+  if (!list.length) return head + `<div class="empty">مفيش أنشطة في الفترة دي</div>`;
+  const shown = list.slice(0, ui.actShown);
+  let html = '', lastDay = '', open = false;
+  for (const l of shown) {
+    const k = dayKey(l.ts);
+    if (k !== lastDay) { if (open) html += '</div>'; html += `<div class="day">${fmtDate(l.ts)}</div><div class="item">`; lastDay = k; open = true; }
+    html += `<div class="act"><div class="tm">${fmtTime(l.ts)}</div><div class="grow"><b>${esc(l.name || '—')}</b> <span class="badge acc">${esc(l.action)}</span>${l.detail ? `<div class="muted">${esc(l.detail)}</div>` : ''}</div></div>`;
+  }
+  if (open) html += '</div>';
+  if (list.length > shown.length) html += `<div style="text-align:center;margin:12px"><button class="btn" data-act="moreActs">عرض المزيد (${list.length - shown.length})</button></div>`;
+  return head + html;
+}
+
+/* ---------- تبويب الطلبات ---------- */
+function requestsView(s) {
+  if (!s.requests.length) return `<div class="empty">✅ مفيش طلبات انضمام معلّقة في ${s.title}</div>`;
+  return `<div class="note" style="margin:0 2px 8px">${s.requests.length} طلب انضمام معلّق</div>` + s.requests.map(v => {
+    const rn = roleNames(s, v), busy = s.ui.busy[v.id];
+    return `<div class="item"><div class="detail" style="background:transparent;border:0">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+        <div class="avatar">${esc([...(v.name || v.email || '?')][0])}</div>
+        <div class="grow"><div class="name">${esc(v.name || '—')}</div><div class="muted">طلب ${fmtDateTime(toDate(v.createdAt))}</div></div>
+      </div>
+      <div class="kv">
+        <div><b>✉️ الإيميل</b>${esc(v.email || '—')}</div>
+        <div><b>📞 التليفون</b>${esc(v.phone || '—')}</div>
+        <div><b>🎂 تاريخ الميلاد</b>${esc(v.dob || '—')}</div>
+        <div><b>🏠 العنوان</b>${esc(v.address || '—')}</div>
+        <div><b>📚 الفصول</b>${esc(classesText(s, v))}</div>
+        <div><b>🎭 الدور</b>${esc(roleLabel(s, v))}${rn ? ' · ' + esc(rn) : ''}</div>
+      </div>
+      <div class="actions">
+        <button class="btn ok" data-act="approve" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✓ قبول</button>
+        <button class="btn bad" data-act="reject" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✕ رفض</button>
+      </div></div></div>`;
+  }).join('');
+}
+
+async function callWorker(s, path, body) {
+  try {
+    const t = await s.auth.currentUser.getIdToken();
+    const r = await fetch(s.worker + path, { method:'POST', headers:{ 'Authorization':'Bearer ' + t, 'Content-Type':'application/json' }, body:JSON.stringify(body || {}) });
+    let data = null; try { data = await r.json(); } catch (_) {}
+    return { ok:r.ok, status:r.status, data };
+  } catch (e) { console.warn('worker', e); return null; }
+}
+function roleIdsOf(v) { return Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds : (v.roleId ? [v.roleId] : []); }
+async function approveReq(s, id) {
+  const v = s.requests.find(x => x.id === id); if (!v) return;
+  s.ui.busy[id] = true; renderTabBody();
+  try {
+    await updateDoc(doc(s.db, 'servants', id), { status:'approved' });
+    callWorker(s, '/servant-decision', { targetUid:id, decision:'approved' });
+    if (v.name) for (const rid of roleIdsOf(v)) { try { await updateDoc(doc(s.db, 'roles', rid), { pendingNames:arrayRemove(v.name) }); } catch (_) {} }
+    toast('تم قبول ' + (v.name || 'الطلب') + ' ✓');
+    const mv = s.servants.find(x => x.id === id); if (mv) mv.status = 'approved'; else s.servants.push({ ...v, status:'approved' });
+    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length;
+  } catch (e) { console.error(e); toast('مش مسموحلك تقبل الطلب ده — راجع صلاحيات Firestore', true); }
+  delete s.ui.busy[id]; renderService(s);
+}
+async function rejectReq(s, id) {
+  const v = s.requests.find(x => x.id === id); if (!v) return;
+  if (!confirm('هترفض طلب "' + (v.name || v.email) + '"؟ الحساب هيتمسح.')) return;
+  s.ui.busy[id] = true; renderTabBody();
+  try {
+    await Promise.race([callWorker(s, '/servant-decision', { targetUid:id, decision:'rejected' }), new Promise(r => setTimeout(r, 4000))]);
+    const r = await callWorker(s, '/delete-servant', { targetUid:id });
+    let msg = 'تم رفض الطلب';
+    if (!(r && r.ok)) { await deleteDoc(doc(s.db, 'servants', id)); msg = 'تم رفض الطلب (اتمسح من الداتا بيز بس — حساب الدخول لسه موجود)'; }
+    if (v.name) for (const rid of roleIdsOf(v)) { try { await updateDoc(doc(s.db, 'roles', rid), { pendingNames:arrayUnion(v.name) }); } catch (_) {} }
+    toast(msg);
+    s.servants = s.servants.filter(x => x.id !== id);
+    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length;
+  } catch (e) { console.error(e); toast('مش مسموحلك ترفض الطلب ده — راجع صلاحيات Firestore', true); }
+  delete s.ui.busy[id]; renderService(s);
+}
+
+/* ================= الأحداث ================= */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const a = el.dataset.act, s = cur();
+  if (a === 'reset') { e.preventDefault(); return s && doReset(s); }
+  if (a === 'open') { const t = SERVICES[el.dataset.s]; if (t) go({ v:'svc', s:t.id }); return; }
+  if (a === 'home') { if (state.v === 'home') return; go({ v:'home', s:null }); return; }
+  if (!s) return;
+  if (a === 'logout') { try { await signOut(s.auth); } catch (_) {} s.user = null; s.admin = false; s.servantsLoaded = false; s.logsKey = ''; s.requestsLoaded = false; s.pending = null; go({ v:'home', s:null }); return; }
+  if (a === 'refresh') { s.servantsLoaded = false; s.logsKey = ''; renderService(s); return; }
+  if (a === 'tab') { s.ui.tab = el.dataset.t; s.ui.expanded = null; renderService(s); return; }
+  if (a === 'applyPeriod') { s.logsKey = ''; renderService(s); return; }
+  if (a === 'toggle') { const id = el.dataset.id; s.ui.expanded = s.ui.expanded === id ? null : id; renderTabBody(); return; }
+  if (a === 'viewActs') { s.ui.actServant = el.dataset.id; s.ui.actAction = ''; s.ui.actQ = ''; s.ui.actShown = 200; s.ui.tab = 'activity'; renderService(s); return; }
+  if (a === 'moreActs') { s.ui.actShown += 300; $('#listwrap').innerHTML = activityList(s); return; }
+  if (a === 'approve') return approveReq(s, el.dataset.id);
+  if (a === 'reject') return rejectReq(s, el.dataset.id);
+});
+document.addEventListener('submit', e => { const f = e.target.closest('[data-form="login"]'); if (!f) return; e.preventDefault(); const s = cur(); if (s) doLogin(s); });
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.q; if (!k) return;
+  const s = cur(); if (!s) return;
+  s.ui[k] = e.target.value; s.ui.actShown = 200;
+  const w = $('#listwrap'); if (w) w.innerHTML = s.ui.tab === 'servants' ? servantsList(s) : activityList(s);
+});
+document.addEventListener('change', e => {
+  const k = e.target.dataset && e.target.dataset.sel; if (!k) return;
+  const s = cur(); if (!s) return;
+  if (k.startsWith('p.')) {
+    const f = k.slice(2); s.period[f] = e.target.value;
+    if (f === 'preset') {
+      if (e.target.value === 'custom') {
+        if (!s.period.from) { const t = new Date(), f0 = new Date(t.getTime() - 7 * 864e5); s.period.from = toInputDT(f0); s.period.to = toInputDT(t); }
+        renderService(s);
+      } else { s.logsKey = ''; renderService(s); }
+    }
+    return;
+  }
+  s.ui[k] = e.target.value; s.ui.actShown = 200; s.ui.expanded = null; renderTabBody();
+});
+
+/* ================= التشغيل ================= */
+(async () => {
+  await Promise.race([Promise.all(Object.values(SERVICES).map(watchAuth)), new Promise(r => setTimeout(r, 5000))]);
+  const h = history.state;
+  if (h && h.v === 'svc' && SERVICES[h.s]) { state.v = 'svc'; state.s = h.s; }
+  history.replaceState({ v:state.v, s:state.s }, '');
+  render();
+})();
+</script>
+</body>
+</html>
