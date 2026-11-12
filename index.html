@@ -109,6 +109,13 @@ table.t{width:100%;border-collapse:collapse;font-size:.88rem}
 table.t th,table.t td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
 table.t th{color:var(--muted);font-weight:600;font-size:.8rem}
 h3{margin:0 0 6px;font-size:1rem}
+.dot2{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:6px;background:var(--muted)}
+.dot2.g{background:var(--ok)}.dot2.y{background:var(--warn)}.dot2.r{background:var(--bad)}
+.sub{font-size:.82rem;color:var(--muted)} .sub2{font-size:.86rem;margin-top:3px}
+.todo{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.todo:last-child{border-bottom:0} .todo .grow{font-size:.92rem}
+pre.code{direction:ltr;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.76rem;overflow:auto;white-space:pre-wrap;margin:8px 0}
+ol.steps{padding-inline-start:20px;margin:8px 0} ol.steps li{margin:6px 0}
 /* مودال */
 .ov{position:fixed;inset:0;background:rgba(2,6,23,.65);z-index:60;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:16px}
@@ -369,6 +376,39 @@ function classesText(s, v) { const ids = classIds(v.assignedClass); if (ids.leng
 function roleIdsOf(v) { return Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds.filter(Boolean) : (v.roleId ? [v.roleId] : []); }
 function roleNames(s, v) { return roleIdsOf(v).map(i => s.roles.get(i)?.name).filter(Boolean).join('، '); }
 const statFor = (s, v) => s.stats.get(v.id) || null;
+function ago(d) {
+  if (!d) return '—';
+  const n = Math.round((dayDate(dayStr(new Date())) - dayDate(dayStr(d))) / 864e5);
+  return n <= 0 ? 'النهارده' : n === 1 ? 'امبارح' : n === 2 ? 'من يومين' : n <= 10 ? `من ${n} أيام` : fmtShortDate(d);
+}
+const RULES_BLOCK = `    // ===== usage (وقت الاستخدام اليومي لكل مستخدم — للوحة التحكم) =====
+    match /usage/{id} {
+      allow read: if isAdmin();
+      allow create, update: if isApproved()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.day is string
+        && id == request.auth.uid + '_' + request.resource.data.day;
+      allow delete: if isAdmin();
+    }
+`;
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (_) {}
+  try { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); const ok = document.execCommand('copy'); a.remove(); return ok; } catch (_) { return false; }
+}
+function openSetupModal(s) {
+  $('#modal').innerHTML = `<div class="ov" data-act="closeModal"><div class="modal" data-keep="1">
+    <h3>⚙️ تشغيل قياس الوقت في ${s.title}</h3>
+    <div class="muted">عشان الوقت يتسجل بدقة محتاج خطوتين مرة واحدة بس:</div>
+    <ol class="steps">
+      <li>افتح <a class="link" target="_blank" rel="noopener" href="https://console.firebase.google.com/project/${esc(s.cfg.projectId)}/firestore/rules">قواعد Firestore بتاعة ${esc(s.sub)}</a>.</li>
+      <li>دوس الزرار تحت لنسخ القاعدة، والصقها <b>قبل آخر سطرين</b> (قبل <code>match /{document=**}</code>) من غير ما تمسح أي حاجة موجودة.</li>
+      <li>دوس <b>Publish</b>. وبعد كده أي خادم يفتح البرنامج هيتسجل وقته تلقائي.</li>
+    </ol>
+    <pre class="code">${esc(RULES_BLOCK)}</pre>
+    <div class="actions"><button class="btn pri" data-act="copyRules">📋 انسخ القاعدة</button><button class="btn" data-act="closeModal">قفل</button></div>
+    <div class="note">القاعدة دي بتسمح لكل مستخدم يكتب مستند وقته هو بس، والأدمن بس يقرا. مفيش حاجة تانية بتتغير.</div>
+  </div></div>`;
+}
 function waLink(phone, text) {
   let d = String(phone || '').replace(/\D/g, ''); if (!d) return '';
   if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '20' + d.slice(1);
@@ -413,6 +453,30 @@ function summaryChips(s) {
   if (n) h += `<span class="badge bad">📨 ${n} طلب انضمام</span>`;
   return h;
 }
+function todoHtml() {
+  const items = [];
+  for (const s of adminServices()) {
+    if (s.pending) items.push(`<div class="todo"><span>📨</span><div class="grow"><b>${s.pending}</b> طلب انضمام في ${s.title}</div><button class="btn sm pri" data-act="goto" data-s="${s.id}" data-t="requests">افتح</button></div>`);
+    const m = s.summary;
+    if (m && m.tracking && m.total - m.active > 0) items.push(`<div class="todo"><span>💤</span><div class="grow"><b>${m.total - m.active}</b> من ${s.wMany} ما فتحوش البرنامج الأسبوع ده (${s.title})</div><button class="btn sm" data-act="goto" data-s="${s.id}" data-t="servants" data-status="idle7">شوفهم</button></div>`);
+    if (m && !m.tracking) items.push(`<div class="todo"><span>⏳</span><div class="grow">قياس الوقت لسه ما بدأش في ${s.title}</div><button class="btn sm" data-act="setupHelp" data-s="${s.id}">إزاي أشغّله؟</button></div>`);
+  }
+  return items.length ? `<div class="panel" style="margin-top:14px"><h3>📌 محتاج انتباهك</h3>${items.join('')}</div>` : '';
+}
+async function doLoginAll() {
+  const email = $('#la-email').value.trim(), pass = $('#la-pass').value, btn = $('#la-btn'), err = $('#la-err');
+  err.textContent = ''; btn.disabled = true; btn.textContent = 'جاري الدخول…';
+  const bad = [];
+  for (const s of Object.values(SERVICES).filter(x => !x.admin)) {
+    try {
+      const cred = await signInWithEmailAndPassword(s.auth, email, pass);
+      if (await verifyAdmin(s, cred.user)) { s.user = cred.user; s.admin = true; s.authError = ''; }
+      else { await signOut(s.auth); bad.push(s.title + ': الحساب مش أدمن معتمد'); }
+    } catch (e) { bad.push(s.title + ': ' + authMsg(e)); }
+  }
+  if (bad.length) toast(bad.join(' — '), true);
+  renderHome();
+}
 function renderHome() {
   state.v = 'home';
   const totalPending = adminServices().reduce((n, s) => n + (s.pending || 0), 0);
@@ -427,11 +491,19 @@ function renderHome() {
         ${s.admin ? `<div class="chips" id="sum-${s.id}">${summaryChips(s)}</div>` : `<div class="st">🔒 اضغط لتسجيل الدخول</div>`}
       </button>`).join('')}
     </div>
+    ${Object.values(SERVICES).some(s => !s.admin) ? `<form class="panel" style="margin-top:14px" data-form="loginAll">
+      <h3>🔑 دخول سريع</h3><div class="muted" style="margin-bottom:8px">سجّل مرة واحدة وهتدخل ${adminServices().length ? 'في الخدمة الباقية' : 'في الخدمتين'} (لو الإيميل والباسورد واحد).</div>
+      <div class="field"><label>الإيميل</label><input type="email" id="la-email" autocomplete="username" value="devidemele@gmail.com" required></div>
+      <div class="field"><label>الباسورد</label><input type="password" id="la-pass" autocomplete="current-password" required></div>
+      <div class="err" id="la-err"></div>
+      <button class="btn pri wide" id="la-btn">دخول</button></form>` : ''}
+    <div id="todobox">${todoHtml()}</div>
     ${adminServices().length ? `<div style="margin-top:14px"><button class="btn wide" data-act="allreq">📨 كل طلبات الانضمام${totalPending ? ` (${totalPending})` : ''}</button></div>` : ''}
   </div>`;
   for (const s of adminServices()) if (!s.summary || s.pending == null) loadSummary(s).then(() => {
     const el = $('#sum-' + s.id);
     if (el && state.v === 'home') el.innerHTML = summaryChips(s);
+    if (state.v === 'home') { const tb = $('#todobox'); if (tb) tb.innerHTML = todoHtml(); }
     if (state.v === 'home') { const b = document.querySelector('[data-act="allreq"]'); if (b) b.textContent = '📨 كل طلبات الانضمام' + (adminServices().reduce((n, x) => n + (x.pending || 0), 0) ? ` (${adminServices().reduce((n, x) => n + (x.pending || 0), 0)})` : ''); }
   });
 }
@@ -527,7 +599,7 @@ function renderTabBody() {
 
 /* ---------- تبويب الخدام ---------- */
 function sourceNote(s) {
-  if (s.statsSource === 'logs') return `<div class="note warn">⏳ القياس الحقيقي لسه ما ظهرش في الفترة دي، فالأرقام تقدير من سجل الأنشطة. حدّث Hdour و E3taty وانشر قواعد Firestore الجديدة عشان الوقت يتسجل بدقة.</div>`;
+  if (s.statsSource === 'logs') return `<div class="note warn">⏳ القياس الحقيقي لسه ما ظهرش في الفترة دي، فالأرقام تقدير من سجل الأنشطة. حدّث Hdour و E3taty وانشر قواعد Firestore الجديدة عشان الوقت يتسجل بدقة. <a class="link" data-act="setupHelp" data-s="${s.id}">إزاي أشغّله؟</a></div>`;
   const [aDay] = periodDays(s);
   if (s.trackStart && s.trackStart > aDay && s.ui.tab === 'servants') return `<div class="note">ℹ️ القياس الحقيقي شغال من ${fmtShortDate(dayDate(s.trackStart))} — قبل كده مفيش أرقام.</div>`;
   return '';
@@ -591,26 +663,22 @@ function servantsList(s) {
     ${(ui.status === 'idle7' || ui.status === 'idle14') && span < (ui.status === 'idle7' ? 7 : 14) ? '<br><span style="color:var(--warn)">اختار فترة أطول من المدة دي عشان فلتر الخمول يبقى دقيق</span>' : ''}
     · <a class="link" data-act="exportServants">⬇️ تصدير Excel</a></div>`;
   if (!list.length) return head + `<div class="empty">مفيش نتايج</div>`;
-  const rankBy = ['usage', 'time', 'last'].includes(ui.sort);
+  const rankBy = ['usage', 'time', 'last'].includes(ui.sort) && !ui.status;
   return head + list.map((v, i) => servantItem(s, v, rankBy ? i + 1 : null)).join('') +
     `<div class="note">${s.statsSource === 'usage' ? '⏱ الوقت = الوقت اللي التطبيق كان ظاهر فيه على الشاشة (مقاس فعليًا).' : `⏱ الوقت تقديري: الأنشطة المتقاربة أقل من ${SESSION_GAP_MIN} دقيقة = جلسة واحدة.`}</div>`;
 }
 function servantItem(s, v, rank) {
   const st = statFor(s, v), open = s.ui.expanded === v.id, name = v.name || v.email || '—';
   const rc = rank === 1 ? 't1' : rank === 2 ? 't2' : rank === 3 ? 't3' : '';
-  const roleB = v.role === 'admin' ? 'acc' : v.role === 'supervisor' ? 'warn' : '';
+  const dd = idleDays(st), dot = dd < 2 ? 'g' : dd < 7 ? 'y' : 'r';
   return `<div class="item">
     <div class="row" data-act="toggle" data-id="${esc(v.id)}">
       ${rank ? `<div class="rank ${rc}">${rank}</div>` : ''}
       <div class="avatar">${esc([...name][0] || '?')}</div>
       <div class="grow">
-        <div class="name">${esc(name)}</div>
-        <div class="chips">
-          <span class="badge ${roleB}">${esc(roleLabel(s, v))}</span>
-          <span class="badge">${esc(classesText(s, v))}</span>
-          ${st ? `<span class="badge ok">🔢 ${st.work} نشاط</span><span class="badge">⏱ ${fmtDur(st.minutes)}</span><span class="badge">📅 ${st.days} يوم</span><span class="badge">🕒 ${fmtDateTime(st.last)}</span>`
-               : `<span class="badge">ما استخدمش في الفترة دي</span>`}
-        </div>
+        <div class="name"><span class="dot2 ${dot}"></span>${esc(name)}</div>
+        <div class="sub">${esc(roleLabel(s, v))} · ${esc(classesText(s, v))}</div>
+        <div class="sub2">${st ? `🔢 <b>${st.work}</b> نشاط · ⏱ <b>${fmtDur(st.minutes)}</b> · 📅 ${st.days} يوم · آخر ظهور <b>${ago(st.last)}</b>` : `<span class="muted">ما استخدمش في الفترة دي</span>`}</div>
       </div>
       <div class="muted">${open ? '▲' : '▼'}</div>
     </div>
@@ -693,7 +761,7 @@ function barChart(items) {
 }
 function analysisView(s) {
   const rows = s.usage;
-  if (!rows.length) return `<div class="empty">لسه مفيش بيانات قياس في الفترة دي.<div class="note">القياس بيبدأ يتسجل أول ما الخدام يفتحوا النسخة الجديدة من البرنامج، وتنشر قواعد Firestore الجديدة (usage).</div></div>`;
+  if (!rows.length) return `<div class="empty">لسه مفيش بيانات قياس في الفترة دي.<div class="note">القياس بيبدأ يتسجل أول ما الخدام يفتحوا النسخة الجديدة من البرنامج، وتنشر قواعد Firestore الجديدة (usage). <a class="link" data-act="setupHelp" data-s="${s.id}">إزاي أشغّله؟</a></div></div>`;
   const today = dayStr(new Date()), [aDay0, bDay0] = periodDays(s);
   const first = rows.reduce((m, r) => r[3] < m ? r[3] : m, rows[0][3]);
   const aDay = first > aDay0 ? first : aDay0, bDay = bDay0 > today ? today : bDay0;
@@ -897,6 +965,9 @@ document.addEventListener('click', async e => {
   const a = el.dataset.act;
   if (a === 'closeModal') { if (el.classList.contains('ov') && e.target.closest('[data-keep]')) return; closeModal(); return; }
   const s = el.dataset.s ? SERVICES[el.dataset.s] : cur();
+  if (a === 'goto') { if (!s) return; s.ui.tab = el.dataset.t || 'servants'; s.ui.status = el.dataset.status || ''; s.ui.expanded = null; if (el.dataset.status) { s.ui.sort = 'last'; s.period.preset = '30'; s.usageKey = ''; } go({ v:'svc', s:s.id }); return; }
+  if (a === 'setupHelp') { if (s) openSetupModal(s); return; }
+  if (a === 'copyRules') { const ok = await copyText(RULES_BLOCK); toast(ok ? 'اتنسخت القاعدة ✓' : 'تعذّر النسخ — انسخها يدويًا من المربع', !ok); return; }
   if (a === 'reset') { e.preventDefault(); return s && doReset(s); }
   if (a === 'open') { if (s) go({ v:'svc', s:s.id }); return; }
   if (a === 'home') { if (state.v === 'home') return; go({ v:'home', s:null }); return; }
@@ -921,7 +992,10 @@ document.addEventListener('click', async e => {
   if (a === 'exportActs') return exportActs(s);
   if (a === 'loadAtt') { el.disabled = true; el.textContent = 'جاري الحساب…'; return loadAttendance(s); }
 });
-document.addEventListener('submit', e => { const f = e.target.closest('[data-form="login"]'); if (!f) return; e.preventDefault(); const s = cur(); if (s) doLogin(s); });
+document.addEventListener('submit', e => {
+  if (e.target.closest('[data-form="loginAll"]')) { e.preventDefault(); doLoginAll(); return; }
+  const f = e.target.closest('[data-form="login"]'); if (!f) return; e.preventDefault(); const s = cur(); if (s) doLogin(s);
+});
 document.addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.q; if (!k) return;
   const s = cur(); if (!s) return;
