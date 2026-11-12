@@ -117,6 +117,11 @@ h3{margin:0 0 6px;font-size:1rem}
 pre.code{direction:ltr;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.76rem;overflow:auto;white-space:pre-wrap;margin:8px 0}
 ol.steps{padding-inline-start:20px;margin:8px 0} ol.steps li{margin:6px 0}
 /* مودال */
+body.has-install{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+#install-banner{display:none;position:fixed;left:0;right:0;bottom:0;z-index:70;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+#install-banner .in{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;padding:10px 12px}
+#install-banner img{width:44px;height:44px;border-radius:11px;flex:none}
+#install-banner .x{background:var(--card2);border:1px solid var(--line);border-radius:8px;width:30px;height:30px;cursor:pointer}
 .ov{position:fixed;inset:0;background:rgba(2,6,23,.65);z-index:60;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:16px}
 .chk{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--card2)}
@@ -127,17 +132,24 @@ ol.steps{padding-inline-start:20px;margin:8px 0} ol.steps li{margin:6px 0}
 <div id="app"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
 <div id="toast"></div>
 <div id="modal"></div>
+<div id="install-banner"><div class="in">
+  <img src="icon-192.png" alt="">
+  <div style="flex:1"><div style="font-weight:800;font-size:.95rem">نزّل التطبيق</div><div class="muted" style="font-size:.8rem">أضفه على الشاشة الرئيسية</div></div>
+  <button class="btn pri sm" id="install-btn">تثبيت</button>
+  <button class="x" id="install-x" aria-label="إغلاق">✕</button>
+</div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, getCountFromServer, query, where, orderBy, limit, startAfter, updateDoc, deleteDoc, arrayRemove, arrayUnion, Timestamp }
+import { getFirestore, collection, doc, getDoc, getDocs as _getDocs, getCountFromServer as _getCount, query, where, orderBy, limit, startAfter, updateDoc, deleteDoc, arrayRemove, arrayUnion, Timestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ================= الإعدادات ================= */
 const SESSION_GAP_MIN = 15, SESSION_PAD_MIN = 2;   // تقدير الوقت من سجل الأنشطة (للفترات القديمة قبل القياس الحقيقي)
-const PAGE = 1000, MAX_LOGS = 4000;
+const LOG_PAGE = 200, ESTIMATE_PAGES = 5;   // سجل الأنشطة بيتحمّل 200 سجل في المرة (والتقدير بحد أقصى 1000)
+const BASE_TTL = 15 * 60 * 1000, LOG_TTL = 5 * 60 * 1000;
 const SERVANTS_CLASS_ID = '__servants__';
 const PRIMARY_ADMINS = ['devidemele@gmail.com'];
 const WEEKDAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -165,10 +177,10 @@ for (const s of Object.values(SERVICES)) {
   s.db = getFirestore(s.app);
   s.user = null; s.admin = false; s.authError = '';
   s.servants = []; s.servantsLoaded = false; s.classes = new Map(); s.roles = new Map();
-  s.logs = []; s.logsKey = ''; s.logsCapped = false;
+  s.reads = 0; s.logs = []; s.logsKey = ''; s.logsAt = 0; s.logsPages = 0; s.logsCursor = null; s.logsMore = false; s.useLogsEstimate = false; s.summaryTried = false;
   s.usage = []; s.usageKey = ''; s.stats = new Map(); s.statsSource = 'usage'; s.trackStart = '';
   s.requests = []; s.pending = null; s.summary = null; s.att = null;
-  s.period = { preset:'30', from:'', to:'' };
+  s.period = { preset:'7', from:'', to:'' };
   s.ui = { tab:'servants', sort:'usage', q:'', role:'', cls:'', status:'', expanded:null, actServant:'', actAction:'', actQ:'', actShown:200, busy:{} };
 }
 
@@ -181,7 +193,14 @@ const fmtShortDate = d => d ? d.toLocaleDateString(LOC, { day:'numeric', month:'
 const fmtTime = d => d ? d.toLocaleTimeString(LOC, { hour:'2-digit', minute:'2-digit', hour12:true }) : '';
 const fmtDateTime = d => d ? fmtShortDate(d) + ' — ' + fmtTime(d) : '—';
 const fmtDur = m => { m = Math.round(m); if (m < 1) return '—'; if (m < 60) return m + ' د'; const h = Math.floor(m/60), r = m % 60; return h + ' س' + (r ? ' ' + r + ' د' : ''); };
-const toDate = t => t && typeof t.toDate === 'function' ? t.toDate() : (t instanceof Date ? t : null);
+const toDate = t => t && typeof t.toDate === 'function' ? t.toDate() : (t instanceof Date ? t : (typeof t === 'number' ? new Date(t) : (t && typeof t.seconds === 'number' ? new Date(t.seconds * 1000) : null)));
+// ===== عدّاد القراءات (كل سجل بيتقرا = قراءة على مشروع الخدمة) =====
+const rdKey = s => 'dash_reads_' + s.id + '_' + dayStr(new Date());
+function addReads(s, n) { s.reads += n; try { localStorage.setItem(rdKey(s), String((+localStorage.getItem(rdKey(s)) || 0) + n)); } catch (_) {} }
+function todayReads(s) { try { return +localStorage.getItem(rdKey(s)) || 0; } catch (_) { return s.reads; } }
+async function rdocs(s, q) { const r = await _getDocs(q); addReads(s, r.size); return r; }
+async function rcount(s, q) { const r = await _getCount(q); addReads(s, Math.max(1, Math.ceil(r.data().count / 1000))); return r; }
+function readsText(s) { return `📊 قراءات اللوحة النهارده على ${esc(s.sub)}: <b>${todayReads(s)}</b> (في الجلسة دي: ${s.reads})`; }
 const p2 = n => String(n).padStart(2, '0');
 const dayStr = d => d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate());
 const dayDate = str => new Date(str + 'T12:00:00');
@@ -214,7 +233,7 @@ function downloadCSV(name, rows) {
 /* ================= الدخول والتحقق من الأدمن ================= */
 async function verifyAdmin(s, user) {
   try {
-    const snap = await getDoc(doc(s.db, 'servants', user.uid));
+    const snap = await getDoc(doc(s.db, 'servants', user.uid)); addReads(s, 1);
     const d = snap.exists() ? snap.data() : null;
     return !!(d && d.status === 'approved' && d.role === 'admin');
   } catch (e) { console.error('verifyAdmin', s.id, e); return false; }
@@ -234,17 +253,30 @@ function watchAuth(s) {
 }
 
 /* ================= تحميل البيانات ================= */
+const bcKey = s => 'dash_base_v1_' + s.id;
 async function loadBase(s, force) {
   if (s.servantsLoaded && !force) return;
+  if (!force) {
+    try {
+      const c = JSON.parse(localStorage.getItem(bcKey(s)));
+      if (c && Date.now() - c.at < BASE_TTL) {
+        s.classes = new Map(c.classes.map(x => [x.id, x])); s.roles = new Map(c.roles.map(x => [x.id, x])); s.servants = c.servants; s.servantsLoaded = true; return;
+      }
+    } catch (_) {}
+  }
   const [cs, rs, ss] = await Promise.all([
-    getDocs(collection(s.db, 'classes')),
-    getDocs(collection(s.db, 'roles')).catch(() => null),
-    getDocs(collection(s.db, 'servants'))
+    rdocs(s, collection(s.db, 'classes')),
+    rdocs(s, collection(s.db, 'roles')).catch(() => null),
+    rdocs(s, collection(s.db, 'servants'))
   ]);
   s.classes = new Map(cs.docs.map(d => [d.id, { id:d.id, ...d.data() }]));
   s.roles = new Map(rs ? rs.docs.map(d => [d.id, { id:d.id, ...d.data() }]) : []);
   s.servants = ss.docs.map(d => ({ id:d.id, ...d.data() }));
   s.servantsLoaded = true;
+  saveBase(s);
+}
+function saveBase(s) {
+  try { localStorage.setItem(bcKey(s), JSON.stringify({ at:Date.now(), classes:[...s.classes.values()], roles:[...s.roles.values()], servants:s.servants })); } catch (_) {}
 }
 function periodRange(s) {
   const p = s.period, now = new Date();
@@ -260,21 +292,31 @@ function periodDays(s) { const [a, b] = periodRange(s); return [dayStr(a), daySt
 function periodText(s) { const [a, b] = periodRange(s); return fmtShortDate(a) + ' ← ' + fmtShortDate(new Date(b.getTime() - 60000)); }
 
 /* ----- سجل الأنشطة (قراءة تقيلة: بنحمّله بس في تبويب الأنشطة أو لو القياس لسه ما بدأش) ----- */
-async function loadLogs(s, force) {
-  const [a, b] = periodRange(s), key = a.getTime() + '_' + b.getTime();
-  if (!force && s.logsKey === key) return;
-  const out = []; let last = null, capped = false;
-  while (true) {
-    const parts = [collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc')];
-    if (last) parts.push(startAfter(last));
-    parts.push(limit(PAGE));
-    const snap = await getDocs(query(...parts));
-    snap.docs.forEach(d => { const x = d.data(); out.push({ id:d.id, uid:x.uid || '', name:x.name || '', action:x.action || '', detail:x.detail || '', ts:toDate(x.timestamp) || new Date(0) }); });
-    if (snap.size < PAGE) break;
-    last = snap.docs[snap.docs.length - 1];
-    if (out.length >= MAX_LOGS) { capped = true; break; }
+async function fetchLogPage(s, a, b, cursor) {
+  const parts = [collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc')];
+  if (cursor) parts.push(startAfter(cursor));
+  parts.push(limit(LOG_PAGE));
+  const snap = await rdocs(s, query(...parts));
+  const items = snap.docs.map(d => { const x = d.data(); return { id:d.id, uid:x.uid || '', name:x.name || '', action:x.action || '', detail:x.detail || '', ts:toDate(x.timestamp) || new Date(0) }; });
+  return { items, last:snap.docs[snap.docs.length - 1] || null, more:snap.size === LOG_PAGE };
+}
+async function loadLogs(s, force, pages = 1) {
+  const key = [s.period.preset, s.period.from, s.period.to, periodDays(s).join('_')].join('|');
+  if (!force && s.logsKey === key && Date.now() - s.logsAt < LOG_TTL && s.logsPages >= pages) return;
+  const [a, b] = periodRange(s);
+  s.logs = []; s.logsCursor = null; s.logsMore = false;
+  for (let i = 0; i < pages; i++) {
+    const r = await fetchLogPage(s, a, b, s.logsCursor);
+    s.logs.push(...r.items); s.logsCursor = r.last; s.logsMore = r.more;
+    if (!r.more) break;
   }
-  s.logs = out; s.logsKey = key; s.logsCapped = capped;
+  s.logsKey = key; s.logsAt = Date.now(); s.logsPages = pages;
+}
+async function loadMoreLogs(s) {
+  if (!s.logsMore) return;
+  const [a, b] = periodRange(s);
+  const r = await fetchLogPage(s, a, b, s.logsCursor);
+  s.logs.push(...r.items); s.logsCursor = r.last; s.logsMore = r.more;
 }
 function statsFromLogs(logs) {
   const by = new Map();
@@ -301,10 +343,11 @@ const ucKey = s => 'dash_usage_v1_' + s.id;
 function ucRead(s) { try { const c = JSON.parse(localStorage.getItem(ucKey(s))); if (c && c.docs && c.from && c.through) return c; } catch (_) {} return null; }
 function ucWrite(s, c) { try { localStorage.setItem(ucKey(s), JSON.stringify(c)); } catch (_) {} }
 async function fetchUsage(s, from, to, single) {
+  if (!single && from > to) return [];
   const q = single
     ? query(collection(s.db, 'usage'), where('day', '==', from))
     : query(collection(s.db, 'usage'), where('day', '>=', from), where('day', '<=', to));
-  const snap = await getDocs(q);
+  const snap = await rdocs(s, q);
   return snap.docs.map(d => { const x = d.data(); return [d.id, x.uid || '', x.name || '', x.day || '', +x.seconds || 0, +x.acts || 0, +x.opens || 0, (toDate(x.last) || new Date(0)).getTime()]; });
 }
 // الأيام اللي فاتت بتتجاب مرة واحدة وتتخزن؛ النهارده بيتجاب طازة كل مرة
@@ -345,24 +388,28 @@ function statsFromUsage(rows) {
 }
 async function ensureStats(s, force) {
   await loadUsage(s, force);
-  if (s.usage.length) { s.stats = statsFromUsage(s.usage); s.statsSource = 'usage'; }
-  else { await loadLogs(s, force); s.stats = statsFromLogs(s.logs); s.statsSource = 'logs'; }
+  if (s.usage.length) { s.stats = statsFromUsage(s.usage); s.statsSource = 'usage'; return; }
+  if (s.useLogsEstimate) { await loadLogs(s, force, ESTIMATE_PAGES); s.stats = statsFromLogs(s.logs); s.statsSource = 'logs'; return; }
+  s.stats = new Map(); s.statsSource = 'none';   // مفيش قياس لسه — ومش هنقرا السجل التقيل من نفسنا
 }
 
 /* ----- ملخص الأسبوع للشاشة الرئيسية ----- */
 async function loadSummary(s) {
-  try {
-    await loadBase(s);
-    const today = dayStr(new Date()), from = addDays(today, -6);
-    const rows = await getUsageRows(s, from, today);
-    const active = new Set(rows.filter(r => r[4] > 0 || r[5] > 0 || r[6] > 0).map(r => r[1]));
-    const people = s.servants.filter(v => v.status === 'approved' && v.role !== 'admin');
-    s.summary = { total:people.length, tracking:rows.length > 0, active:people.filter(v => active.has(v.id)).length, minutes:rows.reduce((n, r) => n + r[4], 0) / 60 };
-  } catch (e) { console.warn('summary', s.id, e); s.summary = null; }
-  try { const r = await getCountFromServer(query(collection(s.db, 'servants'), where('status', '==', 'pending'))); s.pending = r.data().count; } catch (e) { s.pending = null; }
+  s.summaryTried = true;
+  let people = [];
+  try { await loadBase(s); people = s.servants.filter(v => v.status === 'approved' && v.role !== 'admin'); } catch (e) { console.warn('summary base', s.id, e); }
+  if (people.length || s.servantsLoaded) {
+    s.summary = { total:people.length, tracking:false, active:0, minutes:0 };
+    try {
+      const today = dayStr(new Date()), rows = await getUsageRows(s, addDays(today, -6), today);
+      const active = new Set(rows.filter(r => r[4] > 0 || r[5] > 0 || r[6] > 0).map(r => r[1]));
+      s.summary = { total:people.length, tracking:rows.length > 0, active:people.filter(v => active.has(v.id)).length, minutes:rows.reduce((n, r) => n + r[4], 0) / 60 };
+    } catch (e) { console.warn('summary usage', s.id, e); }
+  }
+  try { const r = await rcount(s, query(collection(s.db, 'servants'), where('status', '==', 'pending'))); s.pending = r.data().count; } catch (e) { s.pending = null; }
 }
 async function loadRequests(s) {
-  const snap = await getDocs(query(collection(s.db, 'servants'), where('status', '==', 'pending')));
+  const snap = await rdocs(s, query(collection(s.db, 'servants'), where('status', '==', 'pending')));
   s.requests = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
   s.pending = s.requests.length;
 }
@@ -451,6 +498,7 @@ function summaryChips(s) {
                   : `<span class="badge warn">⏳ القياس لسه ما بدأش</span>`;
   }
   if (n) h += `<span class="badge bad">📨 ${n} طلب انضمام</span>`;
+  h += `<span class="badge">📊 ${todayReads(s)} قراءة النهارده</span>`;
   return h;
 }
 function todoHtml() {
@@ -500,7 +548,7 @@ function renderHome() {
     <div id="todobox">${todoHtml()}</div>
     ${adminServices().length ? `<div style="margin-top:14px"><button class="btn wide" data-act="allreq">📨 كل طلبات الانضمام${totalPending ? ` (${totalPending})` : ''}</button></div>` : ''}
   </div>`;
-  for (const s of adminServices()) if (!s.summary || s.pending == null) loadSummary(s).then(() => {
+  for (const s of adminServices()) if (!s.summaryTried) loadSummary(s).then(() => {
     const el = $('#sum-' + s.id);
     if (el && state.v === 'home') el.innerHTML = summaryChips(s);
     if (state.v === 'home') { const tb = $('#todobox'); if (tb) tb.innerHTML = todoHtml(); }
@@ -566,16 +614,19 @@ function renderService(s) {
       </div>
       <div class="note">${periodText(s)}${ui.tab !== 'activity' ? ' · القياس بالأيام (مش بالساعة)' : ''}</div>
     </div>` : ''}
+    <div class="note" id="readsnote" style="margin:-4px 2px 8px">${readsText(s)}</div>
     <div id="tabbody"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
   </div>`;
   loadTab(s);
 }
 async function loadTab(s, force) {
   const tab = s.ui.tab, token = ++loadTab.n;
+  if (s.forceBase) { force = true; s.forceBase = false; await Promise.resolve(); }
   try {
+    if (force) await loadBase(s, true);
     if (tab === 'requests') { await loadBase(s); await loadRequests(s); }
-    else if (tab === 'activity') { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) await loadLogs(s, force); }
-    else { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) { if (tab === 'analysis') await loadUsage(s, force); else await ensureStats(s, force); } }
+    else if (tab === 'activity') { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) await loadLogs(s); }
+    else { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) { if (tab === 'analysis') await loadUsage(s); else await ensureStats(s); } }
   } catch (e) {
     console.error(e);
     if (token === loadTab.n) { const b = $('#tabbody'); if (b) b.innerHTML = `<div class="empty">تعذّر تحميل البيانات.<br><span class="muted">${esc(e.code || e.message || '')}</span><div class="note">لو المشكلة في الصلاحيات: تأكد إنك نشرت قواعد Firestore الجديدة (usage) في ${s.sub}، وإن اللوحة مرفوعة على نفس الدومين teto550.github.io.</div></div>`; }
@@ -593,13 +644,15 @@ loadTab.n = 0;
 function renderTabBody() {
   const s = cur(); if (!s || !s.admin) return;
   const body = $('#tabbody'); if (!body) return;
-  const t = s.ui.tab;
+  const t = s.ui.tab, rn = $('#readsnote'); if (rn) rn.innerHTML = readsText(s);
   body.innerHTML = t === 'servants' ? servantsView(s) : t === 'activity' ? activityView(s) : t === 'analysis' ? analysisView(s) : `<div id="reqbox">${requestsView(s)}</div>`;
 }
 
 /* ---------- تبويب الخدام ---------- */
 function sourceNote(s) {
-  if (s.statsSource === 'logs') return `<div class="note warn">⏳ القياس الحقيقي لسه ما ظهرش في الفترة دي، فالأرقام تقدير من سجل الأنشطة. حدّث Hdour و E3taty وانشر قواعد Firestore الجديدة عشان الوقت يتسجل بدقة. <a class="link" data-act="setupHelp" data-s="${s.id}">إزاي أشغّله؟</a></div>`;
+  if (s.statsSource === 'none') return `<div class="note warn">⏳ قياس الوقت لسه ما بدأش في الفترة دي. <a class="link" data-act="setupHelp" data-s="${s.id}">إزاي أشغّله؟</a><br>
+    <a class="link" data-act="estimate">📉 عرض تقدير مؤقت من سجل الأنشطة</a> (بيقرا حتى ${LOG_PAGE * ESTIMATE_PAGES} سجل من ${esc(s.sub)}).</div>`;
+  if (s.statsSource === 'logs') return `<div class="note warn">⏳ الأرقام تقدير من آخر ${s.logs.length} نشاط بس (مش قياس حقيقي). <a class="link" data-act="setupHelp" data-s="${s.id}">إزاي أشغّل القياس الحقيقي؟</a></div>`;
   const [aDay] = periodDays(s);
   if (s.trackStart && s.trackStart > aDay && s.ui.tab === 'servants') return `<div class="note">ℹ️ القياس الحقيقي شغال من ${fmtShortDate(dayDate(s.trackStart))} — قبل كده مفيش أرقام.</div>`;
   return '';
@@ -678,7 +731,7 @@ function servantItem(s, v, rank) {
       <div class="grow">
         <div class="name"><span class="dot2 ${dot}"></span>${esc(name)}</div>
         <div class="sub">${esc(roleLabel(s, v))} · ${esc(classesText(s, v))}</div>
-        <div class="sub2">${st ? `🔢 <b>${st.work}</b> نشاط · ⏱ <b>${fmtDur(st.minutes)}</b> · 📅 ${st.days} يوم · آخر ظهور <b>${ago(st.last)}</b>` : `<span class="muted">ما استخدمش في الفترة دي</span>`}</div>
+        <div class="sub2">${st ? `🔢 <b>${st.work}</b> نشاط · ⏱ <b>${fmtDur(st.minutes)}</b> · 📅 ${st.days} يوم · آخر ظهور <b>${ago(st.last)}</b>` : (s.statsSource === 'none' ? '<span class="muted">—</span>' : '<span class="muted">ما استخدمش في الفترة دي</span>')}</div>
       </div>
       <div class="muted">${open ? '▲' : '▼'}</div>
     </div>
@@ -738,7 +791,7 @@ function activityView(s) {
 }
 function activityList(s) {
   const ui = s.ui, list = activityData(s);
-  const head = `<div class="note" style="margin:0 2px 8px">${list.length} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} بس — ضيّق الفترة</span>` : ''} · <a class="link" data-act="exportActs">⬇️ تصدير Excel</a></div>`;
+  const head = `<div class="note" style="margin:0 2px 8px">${list.length} نشاط محمّل${s.logsMore ? ` · <span style="color:var(--warn)">فيه أكتر — دوس "تحميل المزيد"</span>` : ''}${ui.actServant || ui.actAction || ui.actQ ? ' · الفلتر على المحمّل بس' : ''} · <a class="link" data-act="exportActs">⬇️ تصدير Excel</a></div>`;
   if (!list.length) return head + `<div class="empty">مفيش أنشطة في الفترة دي</div>`;
   const shown = list.slice(0, ui.actShown);
   let html = '', lastDay = '', open = false;
@@ -749,6 +802,7 @@ function activityList(s) {
   }
   if (open) html += '</div>';
   if (list.length > shown.length) html += `<div style="text-align:center;margin:12px"><button class="btn" data-act="moreActs">عرض المزيد (${list.length - shown.length})</button></div>`;
+  else if (s.logsMore) html += `<div style="text-align:center;margin:12px"><button class="btn pri" data-act="moreActs">تحميل المزيد من السيرفر (${LOG_PAGE} سجل)</button></div>`;
   return head + html;
 }
 
@@ -818,8 +872,8 @@ async function loadAttendance(s) {
     const classes = [...s.classes.values()].filter(c => c.id !== SERVANTS_CLASS_ID && c.id !== 'parents').sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     const rows = await Promise.all(classes.map(async c => {
       const [st, at] = await Promise.all([
-        getCountFromServer(query(collection(s.db, 'students'), where('classSection', '==', c.id))),
-        getCountFromServer(query(collection(s.db, 'attendance'), where('classSection', '==', c.id), where('date', '>=', aDay), where('date', '<=', bDay)))
+        rcount(s, query(collection(s.db, 'students'), where('classSection', '==', c.id))),
+        rcount(s, query(collection(s.db, 'attendance'), where('classSection', '==', c.id), where('date', '>=', aDay), where('date', '<=', bDay)))
       ]);
       const records = at.data().count;
       return { label:classLabel(s, c.id), students:st.data().count, records, perWeek:records / weeks };
@@ -886,7 +940,7 @@ async function approveReq(s, id) {
     if (v.name) for (const rid of roleIdsOf(v)) { try { await updateDoc(doc(s.db, 'roles', rid), { pendingNames:arrayRemove(v.name) }); } catch (_) {} }
     toast('تم قبول ' + (v.name || 'الطلب') + ' ✓');
     const mv = s.servants.find(x => x.id === id); if (mv) mv.status = 'approved'; else s.servants.push({ ...v, status:'approved' });
-    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length; s.summary = null;
+    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length; s.summary = null; s.summaryTried = false; saveBase(s);
   } catch (e) { console.error(e); toast('مش مسموحلك تقبل الطلب ده — راجع صلاحيات Firestore', true); }
   delete s.ui.busy[id]; refreshView();
 }
@@ -941,7 +995,7 @@ async function deleteServant(s, id) {
   try {
     const r = await callWorker(s, '/delete-servant', { targetUid:id });
     if (!(r && r.ok)) { await deleteDoc(doc(s.db, 'servants', id)); toast('اتمسح من الداتا بيز (حساب الدخول لسه موجود)'); } else toast('تم الحذف ✓');
-    s.servants = s.servants.filter(x => x.id !== id); s.summary = null; s.ui.expanded = null; refreshView();
+    s.servants = s.servants.filter(x => x.id !== id); s.summary = null; s.summaryTried = false; saveBase(s); s.ui.expanded = null; refreshView();
   } catch (e) { console.error(e); toast('مش مسموحلك تحذف — راجع صلاحيات Firestore', true); }
 }
 
@@ -974,15 +1028,21 @@ document.addEventListener('click', async e => {
   if (a === 'allreq') { go({ v:'allreq', s:null }); return; }
   if (a === 'refresh') {
     if (state.v === 'allreq') { renderAllReq(); return; }
-    if (!s) return; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.summary = null; s.att = null; renderService(s); return;
+    if (!s) return; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.summary = null; s.summaryTried = false; s.att = null; s.servantsLoaded = false; s.forceBase = true; renderService(s); return;
   }
   if (!s) return;
-  if (a === 'logout') { try { await signOut(s.auth); } catch (_) {} s.user = null; s.admin = false; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.pending = null; s.summary = null; go({ v:'home', s:null }); return; }
+  if (a === 'logout') { try { await signOut(s.auth); } catch (_) {} s.user = null; s.admin = false; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.pending = null; s.summary = null; s.summaryTried = false; go({ v:'home', s:null }); return; }
   if (a === 'tab') { s.ui.tab = el.dataset.t; s.ui.expanded = null; renderService(s); return; }
   if (a === 'applyPeriod') { s.logsKey = ''; s.usageKey = ''; s.att = null; renderService(s); return; }
   if (a === 'toggle') { const id = el.dataset.id; s.ui.expanded = s.ui.expanded === id ? null : id; renderTabBody(); return; }
   if (a === 'viewActs') { s.ui.actServant = el.dataset.id; s.ui.actAction = ''; s.ui.actQ = ''; s.ui.actShown = 200; s.ui.tab = 'activity'; renderService(s); return; }
-  if (a === 'moreActs') { s.ui.actShown += 300; $('#listwrap').innerHTML = activityList(s); return; }
+  if (a === 'moreActs') {
+    const total = activityData(s).length;
+    if (s.ui.actShown < total) s.ui.actShown += 300;
+    else if (s.logsMore) { el.disabled = true; el.textContent = 'جاري التحميل…'; try { await loadMoreLogs(s); s.ui.actShown += LOG_PAGE; } catch (e) { toast('تعذّر التحميل', true); } const rn = $('#readsnote'); if (rn) rn.innerHTML = readsText(s); }
+    const w = $('#listwrap'); if (w) w.innerHTML = activityList(s); return;
+  }
+  if (a === 'estimate') { s.useLogsEstimate = true; s.logsKey = ''; renderService(s); return; }
   if (a === 'approve') return approveReq(s, el.dataset.id);
   if (a === 'reject') return rejectReq(s, el.dataset.id);
   if (a === 'editRoles') return openRolesModal(s, el.dataset.id);
@@ -1029,6 +1089,40 @@ document.addEventListener('change', e => {
   render();
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
+/* ================= زرار التثبيت (نفس منطق باقي البرامج) ================= */
+let deferredPrompt = null;
+const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_INAPP = /FBAN|FBAV|FB_IAB|Instagram|Messenger|WhatsApp|Line\/|Snapchat|TikTok|; wv\)/i.test(navigator.userAgent);
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const hideInstall = () => { const b = $('#install-banner'); if (b) b.style.display = 'none'; document.body.classList.remove('has-install'); };
+function checkShowInstall() {
+  if (isStandalone()) { hideInstall(); return; }
+  try { if (sessionStorage.getItem('dash_install_closed')) return; } catch (_) {}
+  setTimeout(() => { if (!isStandalone()) { try { if (sessionStorage.getItem('dash_install_closed')) return; } catch (_) {} $('#install-banner').style.display = 'block'; document.body.classList.add('has-install'); } }, 1000);
+}
+function showInstallHelp(kind) {
+  const steps = {
+    ios: ['افتح اللوحة في <b>Safari</b> (مش من جوه واتساب أو فيسبوك)', 'دوس على زرار <b>المشاركة</b> ⬆️ اللي في الشريط تحت', 'اسحب لتحت واختار <b>Add to Home Screen</b> وبعدين <b>Add</b>'],
+    inapp: ['إنت فاتح اللوحة من جوه تطبيق تاني (واتساب / فيسبوك…) وده مبيسمحش بالتثبيت', 'دوس على <b>⋮</b> أو <b>…</b> واختار <b>فتح في المتصفح</b> (Open in browser)', 'ارجع دوس زرار التثبيت تاني'],
+    android: ['دوس على <b>⋮</b> (النقط التلاتة) فوق في Chrome', 'اختار <b>تثبيت التطبيق</b> أو <b>Install app</b> (أو Add to Home screen)', 'دوس <b>تثبيت</b>']
+  }[kind];
+  $('#modal').innerHTML = `<div class="ov" data-act="closeModal"><div class="modal" data-keep="1"><h3>📲 خطوات تثبيت اللوحة</h3>
+    <ol class="steps">${steps.map(t => `<li>${t}</li>`).join('')}</ol>
+    <div class="actions"><button class="btn pri" data-act="closeModal">تمام</button></div></div></div>`;
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; checkShowInstall(); });
+$('#install-btn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null;
+    if (outcome === 'accepted') hideInstall();
+  } else if (IS_INAPP) showInstallHelp('inapp');
+  else if (IS_IOS) showInstallHelp('ios');
+  else showInstallHelp('android');
+});
+$('#install-x').addEventListener('click', () => { hideInstall(); try { sessionStorage.setItem('dash_install_closed', '1'); } catch (_) {} });
+window.addEventListener('appinstalled', hideInstall);
+checkShowInstall();
 window.__dash = { SERVICES, state }; // للاختبار فقط
 </script>
 </body>
