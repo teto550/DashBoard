@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="لوحة التحكم">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>لوحة التحكم — Hdour و E3taty</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -30,21 +36,22 @@ h1{font-size:1.5rem;margin:6px 0 2px;font-weight:800}
 .svc-card .em{font-size:2.4rem}
 .svc-card h2{margin:6px 0 0;font-size:1.3rem}
 .svc-card .st{margin-top:10px;font-size:.9rem;color:var(--muted)}
+.svc-card .chips{margin-top:10px}
 .badge{display:inline-flex;align-items:center;gap:4px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.78rem;white-space:nowrap}
 .badge.acc{background:color-mix(in srgb,var(--acc) 18%,transparent);border-color:color-mix(in srgb,var(--acc) 50%,transparent)}
 .badge.ok{color:var(--ok)} .badge.warn{color:var(--warn)} .badge.bad{color:var(--bad)}
 .notif{position:absolute;top:14px;left:14px;background:var(--bad);color:#fff;border-radius:999px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;padding:0 8px}
 .bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.bar .grow{flex:1;min-width:120px}
-.btn{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 14px;font-weight:600}
+.btn{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 14px;font-weight:600;text-decoration:none;display:inline-block}
 .btn:active{transform:scale(.97)}
 .btn.pri{background:var(--acc);border-color:var(--acc);color:#0b1220}
 .btn.ok{background:var(--ok);border-color:var(--ok);color:#06251b}
 .btn.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
 .btn.sm{padding:5px 10px;font-size:.85rem;border-radius:10px}
+.btn.wide{width:100%;text-align:center}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:12px}
-.tab{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:9px 6px;border-radius:10px;font-weight:700;font-size:.92rem;position:relative}
+.tab{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:9px 4px;border-radius:10px;font-weight:700;font-size:.86rem;position:relative}
 .tab.on{background:var(--acc);color:#0b1220}
 .tab .dot{background:var(--bad);color:#fff;border-radius:999px;font-size:.72rem;padding:0 7px;margin-inline-start:4px}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:12px}
@@ -75,19 +82,44 @@ input[type=search],input[type=text]{width:100%}
 .empty{text-align:center;color:var(--muted);padding:30px 10px}
 .spin{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle;margin-inline-end:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 #toast div{background:#0b1220;color:#fff;border-radius:12px;padding:10px 16px;box-shadow:var(--shadow);font-size:.92rem;max-width:90vw}
 #toast div.err{background:#b91c1c}
 .login{max-width:420px;margin:40px auto 0;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);border-top:5px solid var(--acc)}
 .err{color:var(--bad);font-size:.9rem;margin:6px 0}
 .note{font-size:.8rem;color:var(--muted);margin-top:8px}
-.link{color:var(--acc);text-decoration:none}
+.note.warn{color:var(--warn)}
+.link{color:var(--acc);text-decoration:none;cursor:pointer}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+/* تحليل */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+@media(min-width:640px){.cards{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.kpi b{display:block;font-size:1.35rem;font-weight:800}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.chart{display:flex;align-items:flex-end;gap:2px;height:110px;margin-top:6px}
+.chart .col{flex:1;height:100%;display:flex;align-items:flex-end;min-width:0}
+.chart .bar2{width:100%;min-height:2px;border-radius:3px 3px 0 0;background:var(--acc)}
+.chart .bar2.z{opacity:.25}
+.axis{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-top:4px}
+.hb{display:grid;grid-template-columns:70px 1fr 60px;gap:8px;align-items:center;margin:5px 0;font-size:.88rem}
+.hb .tr{background:var(--card2);border-radius:999px;height:12px;overflow:hidden}
+.hb .tr i{display:block;height:100%;background:var(--acc);border-radius:999px}
+table.t{width:100%;border-collapse:collapse;font-size:.88rem}
+table.t th,table.t td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right}
+table.t th{color:var(--muted);font-weight:600;font-size:.8rem}
+h3{margin:0 0 6px;font-size:1rem}
+/* مودال */
+.ov{position:fixed;inset:0;background:rgba(2,6,23,.65);z-index:60;display:flex;align-items:center;justify-content:center;padding:14px}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;max-height:86vh;overflow:auto;padding:16px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;background:var(--card2)}
+.chk input{margin-top:5px;width:18px;height:18px;flex:none}
 </style>
 </head>
 <body>
 <div id="app"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
 <div id="toast"></div>
+<div id="modal"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -97,20 +129,21 @@ import { getFirestore, collection, doc, getDoc, getDocs, getCountFromServer, que
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ================= الإعدادات ================= */
-const SESSION_GAP_MIN = 15;     // أنشطة بينها أقل من 15 دقيقة = نفس الجلسة (لتقدير الوقت)
-const SESSION_PAD_MIN = 2;      // بنزوّد دقيقتين على كل جلسة (آخر نشاط مش آخر لحظة في الجلسة)
-const PAGE = 1000, MAX_LOGS = 6000;
+const SESSION_GAP_MIN = 15, SESSION_PAD_MIN = 2;   // تقدير الوقت من سجل الأنشطة (للفترات القديمة قبل القياس الحقيقي)
+const PAGE = 1000, MAX_LOGS = 4000;
 const SERVANTS_CLASS_ID = '__servants__';
+const PRIMARY_ADMINS = ['devidemele@gmail.com'];
+const WEEKDAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
 const SERVICES = {
   hdour: {
-    id:'hdour', title:'خدمة ابتدائي', sub:'Hdour', emoji:'🧒', acc:'#60a5fa', fem:false, wMany:'الخدام', wOne:'خادم',
+    id:'hdour', title:'خدمة ابتدائي', sub:'Hdour', emoji:'🧒', acc:'#60a5fa', fem:false, wMany:'الخدام', wOne:'خادم', supervisors:true,
     cfg:{ apiKey:"AIzaSyBWK4y1GjEBXMrzgKu3Hm3sSG5sd2ympEI", authDomain:"hdour-d66d8.firebaseapp.com", projectId:"hdour-d66d8",
           storageBucket:"hdour-d66d8.firebasestorage.app", messagingSenderId:"877333539513", appId:"1:877333539513:web:5e36ff0a09a2924ae64968" },
     rc:'6LfZEcYtAAAAAPAX04C1QJAGkoB1MV8MbJuNRF2a', worker:'https://hdour-push.devidemele.workers.dev'
   },
   e3taty: {
-    id:'e3taty', title:'خدمة إعدادي', sub:'E3taty', emoji:'👧', acc:'#f472b6', fem:true, wMany:'الخادمات', wOne:'خادمة',
+    id:'e3taty', title:'خدمة إعدادي', sub:'E3taty', emoji:'👧', acc:'#f472b6', fem:true, wMany:'الخادمات', wOne:'خادمة', supervisors:false,
     cfg:{ apiKey:"AIzaSyCluCLDVy4ojnqI4XFCbsRFL8gH1GKjnzI", authDomain:"e3taty.firebaseapp.com", projectId:"e3taty",
           storageBucket:"e3taty.firebasestorage.app", messagingSenderId:"759314140537", appId:"1:759314140537:web:f27c8bedfc06ad13b373a8" },
     rc:'6Le_8uktAAAAACBWXqGADoPshcKYYGh2Fv22tdd4', worker:'https://e3taty-push.devidemele.workers.dev'
@@ -123,13 +156,13 @@ for (const s of Object.values(SERVICES)) {
   if (!isLocal) { try { initializeAppCheck(s.app, { provider:new ReCaptchaEnterpriseProvider(s.rc), isTokenAutoRefreshEnabled:true }); } catch(e) { console.warn('appcheck', s.id, e); } }
   s.auth = getAuth(s.app);
   s.db = getFirestore(s.app);
-  s.user = null; s.admin = false; s.authReady = false; s.authError = '';
-  s.servants = []; s.servantsLoaded = false;
-  s.classes = new Map(); s.roles = new Map();
-  s.logs = []; s.logsKey = ''; s.logsCapped = false; s.stats = new Map();
-  s.requests = []; s.requestsLoaded = false; s.pending = null;
+  s.user = null; s.admin = false; s.authError = '';
+  s.servants = []; s.servantsLoaded = false; s.classes = new Map(); s.roles = new Map();
+  s.logs = []; s.logsKey = ''; s.logsCapped = false;
+  s.usage = []; s.usageKey = ''; s.stats = new Map(); s.statsSource = 'usage'; s.trackStart = '';
+  s.requests = []; s.pending = null; s.summary = null; s.att = null;
   s.period = { preset:'30', from:'', to:'' };
-  s.ui = { tab:'servants', sort:'usage', q:'', role:'', cls:'', expanded:null, actServant:'', actAction:'', actQ:'', actShown:200, busy:{} };
+  s.ui = { tab:'servants', sort:'usage', q:'', role:'', cls:'', status:'', expanded:null, actServant:'', actAction:'', actQ:'', actShown:200, busy:{} };
 }
 
 /* ================= أدوات ================= */
@@ -142,12 +175,16 @@ const fmtTime = d => d ? d.toLocaleTimeString(LOC, { hour:'2-digit', minute:'2-d
 const fmtDateTime = d => d ? fmtShortDate(d) + ' — ' + fmtTime(d) : '—';
 const fmtDur = m => { m = Math.round(m); if (m < 1) return '—'; if (m < 60) return m + ' د'; const h = Math.floor(m/60), r = m % 60; return h + ' س' + (r ? ' ' + r + ' د' : ''); };
 const toDate = t => t && typeof t.toDate === 'function' ? t.toDate() : (t instanceof Date ? t : null);
-const dayKey = d => d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
-const toInputDT = d => { const p = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); };
+const p2 = n => String(n).padStart(2, '0');
+const dayStr = d => d.getFullYear() + '-' + p2(d.getMonth()+1) + '-' + p2(d.getDate());
+const dayDate = str => new Date(str + 'T12:00:00');
+const addDays = (str, n) => { const d = dayDate(str); d.setDate(d.getDate() + n); return dayStr(d); };
+const toInputDT = d => d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())+'T'+p2(d.getHours())+':'+p2(d.getMinutes());
+const isPrimary = email => PRIMARY_ADMINS.includes(String(email || '').toLowerCase());
 
 function toast(msg, err) {
   const el = document.createElement('div'); if (err) el.className = 'err'; el.textContent = msg;
-  $('#toast').appendChild(el); setTimeout(() => el.remove(), 3600);
+  $('#toast').appendChild(el); setTimeout(() => el.remove(), 3800);
 }
 function authMsg(e) {
   const c = e && e.code || '';
@@ -155,6 +192,16 @@ function authMsg(e) {
   if (/too-many-requests/.test(c)) return 'محاولات كتير — استنى شوية وجرّب تاني';
   if (/network/.test(c)) return 'مشكلة في الإنترنت';
   return 'تعذّر تسجيل الدخول' + (c ? ' (' + c + ')' : '');
+}
+function csvCell(v) {
+  v = String(v ?? '');
+  if (/^[=+\-@\t\r]/.test(v) && !/^[+\-]?\d[\d\s().-]*$/.test(v)) v = "'" + v;
+  return '"' + v.replace(/"/g, '""') + '"';
+}
+function downloadCSV(name, rows) {
+  const blob = new Blob(['﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }
 
 /* ================= الدخول والتحقق من الأدمن ================= */
@@ -174,7 +221,6 @@ function watchAuth(s) {
         if (ok) { s.user = user; s.admin = true; s.authError = ''; }
         else { s.user = null; s.admin = false; s.authError = 'الحساب ده مش أدمن معتمد في ' + s.title; try { await signOut(s.auth); } catch(_){} }
       } else { s.user = null; s.admin = false; }
-      s.authReady = true;
       if (first) { first = false; res(); } else if (state.v === 'home') renderHome();
     });
   });
@@ -195,74 +241,143 @@ async function loadBase(s, force) {
 }
 function periodRange(s) {
   const p = s.period, now = new Date();
-  const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  if (p.preset === 'today') return [startOfDay(now), new Date(now.getTime() + 60000)];
-  if (p.preset === 'custom') {
-    const f = p.from ? new Date(p.from) : null, t = p.to ? new Date(p.to) : null;
-    return [f || new Date(2020,0,1), t || new Date(now.getTime() + 60000)];
-  }
-  if (p.preset === 'all') return [new Date(2020,0,1), new Date(now.getTime() + 60000)];
-  const n = +p.preset || 30; const st = startOfDay(now); st.setDate(st.getDate() - (n - 1));
-  return [st, new Date(now.getTime() + 60000)];
+  const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const end = new Date(now.getTime() + 60000);
+  if (p.preset === 'today') return [sod(now), end];
+  if (p.preset === 'custom') { const f = p.from ? new Date(p.from) : null, t = p.to ? new Date(p.to) : null; return [f || new Date(2020,0,1), t || end]; }
+  if (p.preset === 'all') return [new Date(2020,0,1), end];
+  const n = +p.preset || 30; const st = sod(now); st.setDate(st.getDate() - (n - 1));
+  return [st, end];
 }
+function periodDays(s) { const [a, b] = periodRange(s); return [dayStr(a), dayStr(new Date(b.getTime() - 60000))]; }
+function periodText(s) { const [a, b] = periodRange(s); return fmtShortDate(a) + ' ← ' + fmtShortDate(new Date(b.getTime() - 60000)); }
+
+/* ----- سجل الأنشطة (قراءة تقيلة: بنحمّله بس في تبويب الأنشطة أو لو القياس لسه ما بدأش) ----- */
 async function loadLogs(s, force) {
-  const [a, b] = periodRange(s);
-  const key = a.getTime() + '_' + b.getTime();
+  const [a, b] = periodRange(s), key = a.getTime() + '_' + b.getTime();
   if (!force && s.logsKey === key) return;
   const out = []; let last = null, capped = false;
   while (true) {
-    const q = last
-      ? query(collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc'), startAfter(last), limit(PAGE))
-      : query(collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc'), limit(PAGE));
-    const snap = await getDocs(q);
+    const parts = [collection(s.db, 'activityLog'), where('timestamp','>=',Timestamp.fromDate(a)), where('timestamp','<',Timestamp.fromDate(b)), orderBy('timestamp','desc')];
+    if (last) parts.push(startAfter(last));
+    parts.push(limit(PAGE));
+    const snap = await getDocs(query(...parts));
     snap.docs.forEach(d => { const x = d.data(); out.push({ id:d.id, uid:x.uid || '', name:x.name || '', action:x.action || '', detail:x.detail || '', ts:toDate(x.timestamp) || new Date(0) }); });
     if (snap.size < PAGE) break;
     last = snap.docs[snap.docs.length - 1];
     if (out.length >= MAX_LOGS) { capped = true; break; }
   }
   s.logs = out; s.logsKey = key; s.logsCapped = capped;
-  s.stats = computeStats(out);
 }
-function computeStats(logs) {
+function statsFromLogs(logs) {
   const by = new Map();
   for (const l of logs) { const k = l.uid || ('n:' + l.name); if (!by.has(k)) by.set(k, []); by.get(k).push(l); }
   const stats = new Map();
   for (const [k, arr] of by) {
     arr.sort((x, y) => x.ts - y.ts);
-    let minutes = 0, sessions = 0, start = arr[0].ts.getTime(), prev = start;
-    const days = new Set(), actions = new Map(); let opens = 0;
+    let minutes = 0, sessions = 0, start = arr[0].ts.getTime(), prev = start, opens = 0;
+    const days = new Set(), actions = new Map();
     for (const l of arr) {
       const t = l.ts.getTime();
       if ((t - prev) / 60000 > SESSION_GAP_MIN) { minutes += (prev - start) / 60000 + SESSION_PAD_MIN; sessions++; start = t; }
-      prev = t; days.add(dayKey(l.ts));
-      actions.set(l.action, (actions.get(l.action) || 0) + 1);
+      prev = t; days.add(dayStr(l.ts)); actions.set(l.action, (actions.get(l.action) || 0) + 1);
       if (l.action === 'فتح التطبيق') opens++;
     }
     minutes += (prev - start) / 60000 + SESSION_PAD_MIN; sessions++;
-    stats.set(k, { total:arr.length, opens, work:arr.length - opens, minutes, sessions, days:days.size, last:arr[arr.length - 1].ts, actions });
+    stats.set(k, { work:arr.length - opens, opens, minutes, sessions, days:days.size, last:arr[arr.length - 1].ts, actions });
   }
   return stats;
 }
+
+/* ----- القياس الحقيقي: مستند يومي لكل خادم (usage) + كاش محلي للأيام اللي فاتت ----- */
+const ucKey = s => 'dash_usage_v1_' + s.id;
+function ucRead(s) { try { const c = JSON.parse(localStorage.getItem(ucKey(s))); if (c && c.docs && c.from && c.through) return c; } catch (_) {} return null; }
+function ucWrite(s, c) { try { localStorage.setItem(ucKey(s), JSON.stringify(c)); } catch (_) {} }
+async function fetchUsage(s, from, to, single) {
+  const q = single
+    ? query(collection(s.db, 'usage'), where('day', '==', from))
+    : query(collection(s.db, 'usage'), where('day', '>=', from), where('day', '<=', to));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => { const x = d.data(); return [d.id, x.uid || '', x.name || '', x.day || '', +x.seconds || 0, +x.acts || 0, +x.opens || 0, (toDate(x.last) || new Date(0)).getTime()]; });
+}
+// الأيام اللي فاتت بتتجاب مرة واحدة وتتخزن؛ النهارده بيتجاب طازة كل مرة
+async function getUsageRows(s, aDay, bDay, force) {
+  const today = dayStr(new Date()), yest = addDays(today, -1);
+  const wantFrom = aDay > yest ? yest : aDay;
+  let c = force ? null : ucRead(s);
+  if (!c) {
+    c = { from:wantFrom, through:yest, docs:{} };
+    (await fetchUsage(s, wantFrom, yest)).forEach(r => { c.docs[r[0]] = r; });
+  } else {
+    if (wantFrom < c.from) { (await fetchUsage(s, wantFrom, addDays(c.from, -1))).forEach(r => { c.docs[r[0]] = r; }); c.from = wantFrom; }
+    if (c.through < yest) { (await fetchUsage(s, addDays(c.through, 1), yest)).forEach(r => { c.docs[r[0]] = r; }); c.through = yest; }
+  }
+  ucWrite(s, c);
+  const rows = Object.values(c.docs).filter(r => r[3] >= aDay && r[3] <= bDay);
+  if (bDay >= today) rows.push(...await fetchUsage(s, today, today, true));
+  return rows;
+}
+async function loadUsage(s, force) {
+  const [aDay, bDay] = periodDays(s), key = aDay + '_' + bDay;
+  if (!force && s.usageKey === key) return;
+  s.usage = await getUsageRows(s, aDay, bDay, force);
+  s.usageKey = key;
+  s.trackStart = s.usage.reduce((m, r) => (!m || r[3] < m) ? r[3] : m, '');
+}
+function statsFromUsage(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    const [, uid, name, day, sec, acts, opens, last] = r;
+    let o = m.get(uid); if (!o) { o = { work:0, opens:0, minutes:0, sessions:null, days:0, last:null, actions:null }; m.set(uid, o); }
+    o.work += acts; o.opens += opens; o.minutes += sec / 60;
+    if (sec > 0 || acts > 0 || opens > 0) o.days++;
+    const t = last || dayDate(day).getTime();
+    if (!o.last || t > o.last.getTime()) o.last = new Date(t);
+  }
+  return m;
+}
+async function ensureStats(s, force) {
+  await loadUsage(s, force);
+  if (s.usage.length) { s.stats = statsFromUsage(s.usage); s.statsSource = 'usage'; }
+  else { await loadLogs(s, force); s.stats = statsFromLogs(s.logs); s.statsSource = 'logs'; }
+}
+
+/* ----- ملخص الأسبوع للشاشة الرئيسية ----- */
+async function loadSummary(s) {
+  try {
+    await loadBase(s);
+    const today = dayStr(new Date()), from = addDays(today, -6);
+    const rows = await getUsageRows(s, from, today);
+    const active = new Set(rows.filter(r => r[4] > 0 || r[5] > 0 || r[6] > 0).map(r => r[1]));
+    const people = s.servants.filter(v => v.status === 'approved' && v.role !== 'admin');
+    s.summary = { total:people.length, tracking:rows.length > 0, active:people.filter(v => active.has(v.id)).length, minutes:rows.reduce((n, r) => n + r[4], 0) / 60 };
+  } catch (e) { console.warn('summary', s.id, e); s.summary = null; }
+  try { const r = await getCountFromServer(query(collection(s.db, 'servants'), where('status', '==', 'pending'))); s.pending = r.data().count; } catch (e) { s.pending = null; }
+}
 async function loadRequests(s) {
   const snap = await getDocs(query(collection(s.db, 'servants'), where('status', '==', 'pending')));
-  s.requests = snap.docs.map(d => ({ id:d.id, ...d.data() }))
-    .sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
-  s.requestsLoaded = true; s.pending = s.requests.length;
-}
-async function countPending(s) {
-  try { const r = await getCountFromServer(query(collection(s.db, 'servants'), where('status', '==', 'pending'))); s.pending = r.data().count; } catch (e) { s.pending = null; }
+  s.requests = snap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
+  s.pending = s.requests.length;
 }
 
 /* ================= مساعدات العرض ================= */
-const ROLE_LABEL = { admin:'أدمن', supervisor:'مسؤول فصل', servant:null };
-function roleLabel(s, v) { return v.role === 'servant' || !v.role ? s.wOne : ROLE_LABEL[v.role] || v.role; }
+const ROLE_LABEL = { admin:'أدمن', supervisor:'مسؤول فصل' };
+function roleLabel(s, v) { return !v.role || v.role === 'servant' ? s.wOne : ROLE_LABEL[v.role] || v.role; }
 function classLabel(s, id) { if (id === SERVANTS_CLASS_ID) return s.wMany; const c = s.classes.get(id); return c ? ((c.emoji ? c.emoji + ' ' : '') + (c.name || id)) : id; }
 function classIds(raw) { return String(raw || '').split(',').map(x => x.trim()).filter(Boolean); }
 function classesText(s, v) { const ids = classIds(v.assignedClass); if (ids.length) return ids.map(i => classLabel(s, i)).join('، '); return v.role === 'admin' ? 'كل الفصول' : 'بدون فصل'; }
-function roleNames(s, v) { const ids = Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds : (v.roleId ? [v.roleId] : []); return ids.map(i => s.roles.get(i)?.name).filter(Boolean).join('، '); }
-function statFor(s, v) { return s.stats.get(v.id) || null; }
-function waLink(phone) { let d = String(phone || '').replace(/\D/g, ''); if (!d) return ''; if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '20' + d.slice(1); return 'https://wa.me/' + d; }
-function periodText(s) { const [a, b] = periodRange(s); const e = new Date(b.getTime() - 60000); return fmtShortDate(a) + ' ← ' + fmtShortDate(e); }
+function roleIdsOf(v) { return Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds.filter(Boolean) : (v.roleId ? [v.roleId] : []); }
+function roleNames(s, v) { return roleIdsOf(v).map(i => s.roles.get(i)?.name).filter(Boolean).join('، '); }
+const statFor = (s, v) => s.stats.get(v.id) || null;
+function waLink(phone, text) {
+  let d = String(phone || '').replace(/\D/g, ''); if (!d) return '';
+  if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '20' + d.slice(1);
+  return 'https://wa.me/' + d + (text ? '?text=' + encodeURIComponent(text) : '');
+}
+function missText(s, v) {
+  const first = String(v.name || '').trim().split(/\s+/)[0] || '';
+  return s.fem ? `سلام ونعمة يا ${first} 🌿 وحشتينا في الخدمة، نفسنا نطمّن عليكي ونسمع أخبارك 🙏` : `سلام ونعمة يا ${first} 🌿 وحشتنا في الخدمة، نفسنا نطمّن عليك ونسمع أخبارك 🙏`;
+}
 
 /* ================= التنقل (زر الرجوع بيرجع خطوة) ================= */
 const state = { v:'home', s:null };
@@ -273,32 +388,51 @@ function go(next, replace) {
 }
 window.addEventListener('popstate', e => { const h = e.state || { v:'home', s:null }; state.v = h.v; state.s = h.s; render(); });
 const cur = () => state.s ? SERVICES[state.s] : null;
+const adminServices = () => Object.values(SERVICES).filter(s => s.admin);
 
 function render() {
-  window.scrollTo(0, 0);
+  window.scrollTo(0, 0); closeModal();
   if (state.v === 'home') return renderHome();
+  if (state.v === 'allreq') return renderAllReq();
   const s = cur(); if (!s) return renderHome();
   if (!s.admin) return renderLogin(s);
   return renderService(s);
 }
+function refreshView() { if (state.v === 'allreq') renderAllReq(); else if (state.v === 'svc') { const s = cur(); if (s && s.admin) renderService(s); } else renderHome(); }
 
 /* ================= الشاشة الرئيسية ================= */
+function summaryChips(s) {
+  const m = s.summary, n = s.pending;
+  if (!m && n == null) return '<span class="badge">جاري تحميل الملخص…</span>';
+  let h = '';
+  if (m) {
+    h += `<span class="badge">👥 ${m.total} ${s.wMany}</span>`;
+    h += m.tracking ? `<span class="badge ok">🟢 ${m.active} نشطين الأسبوع ده</span><span class="badge ${m.total - m.active > 0 ? 'warn' : ''}">💤 ${Math.max(0, m.total - m.active)} خاملين</span><span class="badge">⏱ ${fmtDur(m.minutes)}</span>`
+                  : `<span class="badge warn">⏳ القياس لسه ما بدأش</span>`;
+  }
+  if (n) h += `<span class="badge bad">📨 ${n} طلب انضمام</span>`;
+  return h;
+}
 function renderHome() {
   state.v = 'home';
+  const totalPending = adminServices().reduce((n, s) => n + (s.pending || 0), 0);
   $('#app').innerHTML = `<div class="wrap">
     <div class="top"><h1>📊 لوحة التحكم</h1><div class="muted">اختار الخدمة اللي عايز تتابعها</div></div>
     <div class="grid2">${Object.values(SERVICES).map(s => `
       <button class="svc-card" style="--acc:${s.acc}" data-act="open" data-s="${s.id}">
-        ${s.admin && s.pending ? `<span class="notif" id="n-${s.id}">${s.pending}</span>` : `<span class="notif" id="n-${s.id}" style="display:none"></span>`}
+        ${s.admin && s.pending ? `<span class="notif">${s.pending}</span>` : ''}
         <div class="em">${s.emoji}</div>
         <h2>${s.title}</h2>
         <div class="muted">${s.sub}</div>
-        <div class="st">${s.admin ? '✅ داخل بحساب الأدمن' : '🔒 اضغط لتسجيل الدخول'}</div>
+        ${s.admin ? `<div class="chips" id="sum-${s.id}">${summaryChips(s)}</div>` : `<div class="st">🔒 اضغط لتسجيل الدخول</div>`}
       </button>`).join('')}
-    </div></div>`;
-  for (const s of Object.values(SERVICES)) if (s.admin) countPending(s).then(() => {
-    const n = $('#n-' + s.id); if (!n) return;
-    if (s.pending) { n.textContent = s.pending; n.style.display = 'flex'; } else n.style.display = 'none';
+    </div>
+    ${adminServices().length ? `<div style="margin-top:14px"><button class="btn wide" data-act="allreq">📨 كل طلبات الانضمام${totalPending ? ` (${totalPending})` : ''}</button></div>` : ''}
+  </div>`;
+  for (const s of adminServices()) if (!s.summary || s.pending == null) loadSummary(s).then(() => {
+    const el = $('#sum-' + s.id);
+    if (el && state.v === 'home') el.innerHTML = summaryChips(s);
+    if (state.v === 'home') { const b = document.querySelector('[data-act="allreq"]'); if (b) b.textContent = '📨 كل طلبات الانضمام' + (adminServices().reduce((n, x) => n + (x.pending || 0), 0) ? ` (${adminServices().reduce((n, x) => n + (x.pending || 0), 0)})` : ''); }
   });
 }
 
@@ -311,8 +445,8 @@ function renderLogin(s) {
       <div class="field"><label>الإيميل</label><input type="email" id="lg-email" autocomplete="username" value="devidemele@gmail.com" required></div>
       <div class="field"><label>الباسورد</label><input type="password" id="lg-pass" autocomplete="current-password" required></div>
       <div class="err" id="lg-err">${esc(s.authError)}</div>
-      <button class="btn pri" style="width:100%" id="lg-btn">دخول</button>
-      <div class="note"><a href="#" class="link" data-act="reset">نسيت الباسورد؟</a></div>
+      <button class="btn pri wide" id="lg-btn">دخول</button>
+      <div class="note"><a class="link" data-act="reset">نسيت الباسورد؟</a></div>
     </form></div>`;
   $('#lg-pass').focus();
 }
@@ -321,8 +455,7 @@ async function doLogin(s) {
   err.textContent = ''; btn.disabled = true; btn.textContent = 'جاري الدخول…';
   try {
     const cred = await signInWithEmailAndPassword(s.auth, email, pass);
-    const ok = await verifyAdmin(s, cred.user);
-    if (!ok) { await signOut(s.auth); s.authError = 'الحساب ده مش أدمن معتمد في ' + s.title; err.textContent = s.authError; btn.disabled = false; btn.textContent = 'دخول'; return; }
+    if (!(await verifyAdmin(s, cred.user))) { await signOut(s.auth); s.authError = 'الحساب ده مش أدمن معتمد في ' + s.title; err.textContent = s.authError; btn.disabled = false; btn.textContent = 'دخول'; return; }
     s.user = cred.user; s.admin = true; s.authError = '';
     render();
   } catch (e) { err.textContent = authMsg(e); btn.disabled = false; btn.textContent = 'دخول'; }
@@ -345,6 +478,7 @@ function renderService(s) {
     <div class="tabs">
       <button class="tab ${ui.tab === 'servants' ? 'on' : ''}" data-act="tab" data-t="servants">👥 ${s.wMany}</button>
       <button class="tab ${ui.tab === 'activity' ? 'on' : ''}" data-act="tab" data-t="activity">📋 الأنشطة</button>
+      <button class="tab ${ui.tab === 'analysis' ? 'on' : ''}" data-act="tab" data-t="analysis">📈 تحليل</button>
       <button class="tab ${ui.tab === 'requests' ? 'on' : ''}" data-act="tab" data-t="requests">📨 الطلبات${s.pending ? `<span class="dot">${s.pending}</span>` : ''}</button>
     </div>
     ${showPeriod ? `<div class="panel">
@@ -358,43 +492,48 @@ function renderService(s) {
           <span class="muted">إلى</span><input type="datetime-local" data-sel="p.to" value="${esc(p.to)}">
           <button class="btn sm pri" data-act="applyPeriod">تطبيق</button>` : ''}
       </div>
-      <div class="note">${periodText(s)}</div>
+      <div class="note">${periodText(s)}${ui.tab !== 'activity' ? ' · القياس بالأيام (مش بالساعة)' : ''}</div>
     </div>` : ''}
     <div id="tabbody"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div>
   </div>`;
   loadTab(s);
 }
-async function loadTab(s) {
+async function loadTab(s, force) {
   const tab = s.ui.tab, token = ++loadTab.n;
   try {
     if (tab === 'requests') { await loadBase(s); await loadRequests(s); }
-    else { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) await loadLogs(s); }
+    else if (tab === 'activity') { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) await loadLogs(s, force); }
+    else { await loadBase(s); if (s.period.preset !== 'custom' || s.period.from) { if (tab === 'analysis') await loadUsage(s, force); else await ensureStats(s, force); } }
   } catch (e) {
     console.error(e);
-    if (token === loadTab.n) $('#tabbody').innerHTML = `<div class="empty">تعذّر تحميل البيانات.<br><span class="muted">${esc(e.code || e.message || '')}</span><div class="note">لو المشكلة في الصلاحيات أو App Check، تأكد إن اللوحة مرفوعة على نفس الدومين teto550.github.io.</div></div>`;
+    if (token === loadTab.n) { const b = $('#tabbody'); if (b) b.innerHTML = `<div class="empty">تعذّر تحميل البيانات.<br><span class="muted">${esc(e.code || e.message || '')}</span><div class="note">لو المشكلة في الصلاحيات: تأكد إنك نشرت قواعد Firestore الجديدة (usage) في ${s.sub}، وإن اللوحة مرفوعة على نفس الدومين teto550.github.io.</div></div>`; }
     return;
   }
   if (token !== loadTab.n) return;
   renderTabBody();
-  if (s.pending == null) countPending(s).then(() => {
+  if (s.pending == null) loadRequests(s).then(() => {
     const t = document.querySelector('.tab[data-t="requests"]');
     if (cur() === s && t && s.pending && !t.querySelector('.dot')) t.insertAdjacentHTML('beforeend', `<span class="dot">${s.pending}</span>`);
-  });
+  }).catch(() => {});
 }
 loadTab.n = 0;
 
 function renderTabBody() {
   const s = cur(); if (!s || !s.admin) return;
   const body = $('#tabbody'); if (!body) return;
-  if (s.ui.tab === 'servants') body.innerHTML = servantsView(s);
-  else if (s.ui.tab === 'activity') body.innerHTML = activityView(s);
-  else body.innerHTML = requestsView(s);
+  const t = s.ui.tab;
+  body.innerHTML = t === 'servants' ? servantsView(s) : t === 'activity' ? activityView(s) : t === 'analysis' ? analysisView(s) : `<div id="reqbox">${requestsView(s)}</div>`;
 }
 
 /* ---------- تبويب الخدام ---------- */
+function sourceNote(s) {
+  if (s.statsSource === 'logs') return `<div class="note warn">⏳ القياس الحقيقي لسه ما ظهرش في الفترة دي، فالأرقام تقدير من سجل الأنشطة. حدّث Hdour و E3taty وانشر قواعد Firestore الجديدة عشان الوقت يتسجل بدقة.</div>`;
+  const [aDay] = periodDays(s);
+  if (s.trackStart && s.trackStart > aDay && s.ui.tab === 'servants') return `<div class="note">ℹ️ القياس الحقيقي شغال من ${fmtShortDate(dayDate(s.trackStart))} — قبل كده مفيش أرقام.</div>`;
+  return '';
+}
 function servantsView(s) {
-  const ui = s.ui;
-  const classOpts = [...s.classes.values()].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const ui = s.ui, classOpts = [...s.classes.values()].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   return `
     <div class="toolbar">
       <input class="full" type="search" placeholder="🔍 ابحث بالاسم / الإيميل / التليفون" data-q="q" value="${esc(ui.q)}">
@@ -411,32 +550,50 @@ function servantsView(s) {
         <option value="">كل الفصول</option>
         ${classOpts.map(c => `<option value="${esc(c.id)}" ${ui.cls === c.id ? 'selected' : ''}>${esc((c.emoji ? c.emoji + ' ' : '') + (c.name || c.id))}</option>`).join('')}
       </select>
+      <select data-sel="status" class="full">
+        <option value="">كل الحالات</option>
+        <option value="active" ${ui.status === 'active' ? 'selected' : ''}>🟢 نشطين في الفترة</option>
+        <option value="idle7" ${ui.status === 'idle7' ? 'selected' : ''}>💤 خاملين 7 أيام أو أكتر</option>
+        <option value="idle14" ${ui.status === 'idle14' ? 'selected' : ''}>💤 خاملين 14 يوم أو أكتر</option>
+        <option value="never" ${ui.status === 'never' ? 'selected' : ''}>⚪ ما استخدموش خالص في الفترة</option>
+      </select>
     </div>
+    ${sourceNote(s)}
     <div id="listwrap">${servantsList(s)}</div>`;
 }
-function servantsList(s) {
+function servantsData(s) {
   const ui = s.ui, q = ui.q.trim().toLowerCase();
   let list = s.servants.filter(v => v.status === 'approved');
   if (q) list = list.filter(v => [v.name, v.email, v.phone].some(x => String(x || '').toLowerCase().includes(q)));
   if (ui.role) list = list.filter(v => (v.role || 'servant') === ui.role);
   if (ui.cls) list = list.filter(v => classIds(v.assignedClass).includes(ui.cls));
-  const z = { total:0, minutes:0, last:0 };
-  const g = v => statFor(s, v) || z;
+  if (ui.status) list = list.filter(v => {
+    const st = statFor(s, v), idle = d => idleDays(st) >= d;
+    if (ui.status === 'active') return !!st;
+    if (v.role === 'admin') return false; // الأدمن مش بيتحسب خامل
+    return ui.status === 'never' ? !st : ui.status === 'idle7' ? idle(7) : idle(14);
+  });
+  const z = { work:0, opens:0, minutes:0, last:null }, g = v => statFor(s, v) || z;
   const sorters = {
-    usage: (a, b) => g(b).total - g(a).total || g(b).minutes - g(a).minutes,
-    time: (a, b) => g(b).minutes - g(a).minutes || g(b).total - g(a).total,
-    last: (a, b) => (g(b).last || 0) - (g(a).last || 0),
+    usage: (a, b) => g(b).work - g(a).work || g(b).opens - g(a).opens || g(b).minutes - g(a).minutes,
+    time: (a, b) => g(b).minutes - g(a).minutes || g(b).work - g(a).work,
+    last: (a, b) => (g(b).last?.getTime() || 0) - (g(a).last?.getTime() || 0),
     name: (a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'),
     joined: (a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0)
   };
-  list.sort(sorters[ui.sort] || sorters.usage);
-  const active = list.filter(v => statFor(s, v)).length;
-  const totalActs = list.reduce((n, v) => n + g(v).total, 0);
-  const head = `<div class="note" style="margin:0 2px 8px">${list.length} ${s.wMany} · ${active} نشطين في الفترة · ${totalActs} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} نشاط بس — ضيّق الفترة للدقة</span>` : ''}</div>`;
+  return list.sort(sorters[ui.sort] || sorters.usage);
+}
+function servantsList(s) {
+  const ui = s.ui, list = servantsData(s);
+  const active = list.filter(v => statFor(s, v)).length, totalActs = list.reduce((n, v) => n + (statFor(s, v)?.work || 0), 0);
+  const [aDay, bDay] = periodDays(s), span = Math.round((dayDate(bDay) - dayDate(aDay)) / 864e5) + 1;
+  const head = `<div class="note" style="margin:0 2px 8px">${list.length} ${s.wMany} · ${active} نشطين في الفترة · ${totalActs} نشاط
+    ${(ui.status === 'idle7' || ui.status === 'idle14') && span < (ui.status === 'idle7' ? 7 : 14) ? '<br><span style="color:var(--warn)">اختار فترة أطول من المدة دي عشان فلتر الخمول يبقى دقيق</span>' : ''}
+    · <a class="link" data-act="exportServants">⬇️ تصدير Excel</a></div>`;
   if (!list.length) return head + `<div class="empty">مفيش نتايج</div>`;
   const rankBy = ['usage', 'time', 'last'].includes(ui.sort);
   return head + list.map((v, i) => servantItem(s, v, rankBy ? i + 1 : null)).join('') +
-    `<div class="note">⏱ الوقت تقديري: البرنامجين مش بيقيسوا وقت التصفح فعليًا، فبنحسبه من توقيتات الأنشطة (الأنشطة المتقاربة أقل من ${SESSION_GAP_MIN} دقيقة = جلسة واحدة). لازم الخادم يفتح البرنامج بنسخته الحالية عشان "فتح التطبيق" يتسجل.</div>`;
+    `<div class="note">${s.statsSource === 'usage' ? '⏱ الوقت = الوقت اللي التطبيق كان ظاهر فيه على الشاشة (مقاس فعليًا).' : `⏱ الوقت تقديري: الأنشطة المتقاربة أقل من ${SESSION_GAP_MIN} دقيقة = جلسة واحدة.`}</div>`;
 }
 function servantItem(s, v, rank) {
   const st = statFor(s, v), open = s.ui.expanded === v.id, name = v.name || v.email || '—';
@@ -451,7 +608,7 @@ function servantItem(s, v, rank) {
         <div class="chips">
           <span class="badge ${roleB}">${esc(roleLabel(s, v))}</span>
           <span class="badge">${esc(classesText(s, v))}</span>
-          ${st ? `<span class="badge ok">🔢 ${st.total} نشاط</span><span class="badge">⏱ ${fmtDur(st.minutes)}</span><span class="badge">📅 ${st.days} يوم</span><span class="badge">🕒 ${fmtDateTime(st.last)}</span>`
+          ${st ? `<span class="badge ok">🔢 ${st.work} نشاط</span><span class="badge">⏱ ${fmtDur(st.minutes)}</span><span class="badge">📅 ${st.days} يوم</span><span class="badge">🕒 ${fmtDateTime(st.last)}</span>`
                : `<span class="badge">ما استخدمش في الفترة دي</span>`}
         </div>
       </div>
@@ -460,10 +617,14 @@ function servantItem(s, v, rank) {
     ${open ? servantDetail(s, v, st) : ''}
   </div>`;
 }
+function idleDays(st) { return !st || !st.last ? Infinity : (Date.now() - st.last.getTime()) / 864e5; }
 function servantDetail(s, v, st) {
-  const wa = waLink(v.phone);
-  const top = st ? [...st.actions.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8) : [];
-  const rn = roleNames(s, v);
+  const wa = waLink(v.phone), waMiss = waLink(v.phone, missText(s, v)), rn = roleNames(s, v);
+  let top = [];
+  if (st && st.actions) top = [...st.actions.entries()];
+  else if (s.logs.length) { const m = new Map(); s.logs.filter(l => l.uid === v.id).forEach(l => m.set(l.action, (m.get(l.action) || 0) + 1)); top = [...m.entries()]; }
+  top = top.sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const protectedAcc = isPrimary(v.email) || (s.user && s.user.uid === v.id);
   return `<div class="detail">
     <div class="kv">
       <div><b>📞 التليفون</b>${v.phone ? `<a class="link" href="tel:${esc(v.phone)}">${esc(v.phone)}</a>` : '—'}</div>
@@ -473,22 +634,30 @@ function servantDetail(s, v, st) {
       <div><b>📚 الفصول</b>${esc(classesText(s, v))}</div>
       <div><b>🎭 الدور</b>${esc(roleLabel(s, v))}${rn ? ' · ' + esc(rn) : ''}</div>
       <div><b>📝 اتسجّل</b>${fmtShortDate(toDate(v.createdAt))}</div>
-      ${st ? `<div><b>🔁 مرات فتح التطبيق</b>${st.opens}</div><div><b>🧩 عدد الجلسات</b>${st.sessions}</div>` : ''}
+      ${st ? `<div><b>🔁 مرات فتح التطبيق</b>${st.opens}</div>${st.sessions != null ? `<div><b>🧩 عدد الجلسات</b>${st.sessions}</div>` : ''}` : ''}
     </div>
     ${top.length ? `<div class="muted" style="margin-bottom:4px">أكتر الأنشطة:</div><div class="chips">${top.map(([a, n]) => `<span class="badge">${esc(a)} · ${n}</span>`).join('')}</div>` : ''}
     <div class="actions">
-      <button class="btn sm pri" data-act="viewActs" data-id="${esc(v.id)}">📋 عرض كل أنشطته</button>
+      <button class="btn sm pri" data-act="viewActs" data-id="${esc(v.id)}">📋 كل أنشطته</button>
       ${wa ? `<a class="btn sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>` : ''}
+      ${waMiss && idleDays(st) >= 7 ? `<a class="btn sm" href="${waMiss}" target="_blank" rel="noopener">🌿 رسالة افتقاد</a>` : ''}
+      ${protectedAcc ? '' : `<button class="btn sm" data-act="editRoles" data-id="${esc(v.id)}">🎭 تعديل الأدوار</button><button class="btn sm bad" data-act="delServant" data-id="${esc(v.id)}">🗑 حذف</button>`}
     </div>
   </div>`;
 }
 
 /* ---------- تبويب الأنشطة ---------- */
+function activityData(s) {
+  const ui = s.ui, q = ui.actQ.trim().toLowerCase();
+  let list = s.logs;
+  if (ui.actServant) list = list.filter(l => (l.uid || ('n:' + l.name)) === ui.actServant);
+  if (ui.actAction) list = list.filter(l => l.action === ui.actAction);
+  if (q) list = list.filter(l => (l.detail + ' ' + l.name + ' ' + l.action).toLowerCase().includes(q));
+  return list;
+}
 function activityView(s) {
-  const ui = s.ui;
-  const actions = [...new Set(s.logs.map(l => l.action).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
-  const names = new Map(); // uid -> name
-  s.servants.forEach(v => names.set(v.id, v.name || v.email || v.id));
+  const ui = s.ui, actions = [...new Set(s.logs.map(l => l.action).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ar'));
+  const names = new Map(); s.servants.forEach(v => names.set(v.id, v.name || v.email || v.id));
   s.logs.forEach(l => { const k = l.uid || ('n:' + l.name); if (!names.has(k)) names.set(k, l.name || '—'); });
   const opts = [...names.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'ar'));
   return `
@@ -500,17 +669,13 @@ function activityView(s) {
     <div id="listwrap">${activityList(s)}</div>`;
 }
 function activityList(s) {
-  const ui = s.ui, q = ui.actQ.trim().toLowerCase();
-  let list = s.logs;
-  if (ui.actServant) list = list.filter(l => (l.uid || ('n:' + l.name)) === ui.actServant);
-  if (ui.actAction) list = list.filter(l => l.action === ui.actAction);
-  if (q) list = list.filter(l => (l.detail + ' ' + l.name + ' ' + l.action).toLowerCase().includes(q));
-  const head = `<div class="note" style="margin:0 2px 8px">${list.length} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} بس — ضيّق الفترة</span>` : ''}</div>`;
+  const ui = s.ui, list = activityData(s);
+  const head = `<div class="note" style="margin:0 2px 8px">${list.length} نشاط${s.logsCapped ? ` · <span style="color:var(--warn)">اتحمّل أول ${MAX_LOGS} بس — ضيّق الفترة</span>` : ''} · <a class="link" data-act="exportActs">⬇️ تصدير Excel</a></div>`;
   if (!list.length) return head + `<div class="empty">مفيش أنشطة في الفترة دي</div>`;
   const shown = list.slice(0, ui.actShown);
   let html = '', lastDay = '', open = false;
   for (const l of shown) {
-    const k = dayKey(l.ts);
+    const k = dayStr(l.ts);
     if (k !== lastDay) { if (open) html += '</div>'; html += `<div class="day">${fmtDate(l.ts)}</div><div class="item">`; lastDay = k; open = true; }
     html += `<div class="act"><div class="tm">${fmtTime(l.ts)}</div><div class="grow"><b>${esc(l.name || '—')}</b> <span class="badge acc">${esc(l.action)}</span>${l.detail ? `<div class="muted">${esc(l.detail)}</div>` : ''}</div></div>`;
   }
@@ -519,31 +684,123 @@ function activityList(s) {
   return head + html;
 }
 
-/* ---------- تبويب الطلبات ---------- */
-function requestsView(s) {
-  if (!s.requests.length) return `<div class="empty">✅ مفيش طلبات انضمام معلّقة في ${s.title}</div>`;
-  return `<div class="note" style="margin:0 2px 8px">${s.requests.length} طلب انضمام معلّق</div>` + s.requests.map(v => {
-    const rn = roleNames(s, v), busy = s.ui.busy[v.id];
-    return `<div class="item"><div class="detail" style="background:transparent;border:0">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-        <div class="avatar">${esc([...(v.name || v.email || '?')][0])}</div>
-        <div class="grow"><div class="name">${esc(v.name || '—')}</div><div class="muted">طلب ${fmtDateTime(toDate(v.createdAt))}</div></div>
-      </div>
-      <div class="kv">
-        <div><b>✉️ الإيميل</b>${esc(v.email || '—')}</div>
-        <div><b>📞 التليفون</b>${esc(v.phone || '—')}</div>
-        <div><b>🎂 تاريخ الميلاد</b>${esc(v.dob || '—')}</div>
-        <div><b>🏠 العنوان</b>${esc(v.address || '—')}</div>
-        <div><b>📚 الفصول</b>${esc(classesText(s, v))}</div>
-        <div><b>🎭 الدور</b>${esc(roleLabel(s, v))}${rn ? ' · ' + esc(rn) : ''}</div>
-      </div>
-      <div class="actions">
-        <button class="btn ok" data-act="approve" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✓ قبول</button>
-        <button class="btn bad" data-act="reject" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✕ رفض</button>
-      </div></div></div>`;
-  }).join('');
+/* ---------- تبويب التحليل ---------- */
+function barChart(items) {
+  if (!items.length) return '';
+  const max = Math.max(1, ...items.map(i => i.value));
+  return `<div class="chart">${items.map(i => `<div class="col" title="${esc(i.title)}"><div class="bar2 ${i.value ? '' : 'z'}" style="height:${Math.max(2, Math.round(i.value / max * 100))}%"></div></div>`).join('')}</div>
+    <div class="axis"><span>${esc(items[0].label)}</span><span>${esc(items[items.length - 1].label)}</span></div>`;
+}
+function analysisView(s) {
+  const rows = s.usage;
+  if (!rows.length) return `<div class="empty">لسه مفيش بيانات قياس في الفترة دي.<div class="note">القياس بيبدأ يتسجل أول ما الخدام يفتحوا النسخة الجديدة من البرنامج، وتنشر قواعد Firestore الجديدة (usage).</div></div>`;
+  const today = dayStr(new Date()), [aDay0, bDay0] = periodDays(s);
+  const first = rows.reduce((m, r) => r[3] < m ? r[3] : m, rows[0][3]);
+  const aDay = first > aDay0 ? first : aDay0, bDay = bDay0 > today ? today : bDay0;
+  const byDay = new Map();
+  for (const r of rows) {
+    let o = byDay.get(r[3]); if (!o) { o = { min:0, acts:0, users:new Set() }; byDay.set(r[3], o); }
+    o.min += r[4] / 60; o.acts += r[5]; if (r[4] > 0 || r[5] > 0 || r[6] > 0) o.users.add(r[1]);
+  }
+  const days = []; for (let d = aDay, n = 0; d <= bDay && n < 4000; d = addDays(d, 1), n++) days.push(d);
+  const weekly = days.length > 62;
+  const buckets = new Map();
+  for (const d of days) {
+    let key = d; if (weekly) { const dt = dayDate(d); key = addDays(d, -((dt.getDay() + 1) % 7)); }
+    let b = buckets.get(key); if (!b) { b = { users:new Set(), min:0, acts:0 }; buckets.set(key, b); }
+    const o = byDay.get(d); if (o) { o.users.forEach(u => b.users.add(u)); b.min += o.min; b.acts += o.acts; }
+  }
+  const lab = k => dayDate(k).toLocaleDateString(LOC, { day:'numeric', month:'short' });
+  const bl = [...buckets.entries()];
+  const usersItems = bl.map(([k, b]) => ({ label:lab(k), value:b.users.size, title:`${lab(k)}${weekly ? ' (أسبوع)' : ''}: ${b.users.size} نشطين` }));
+  const minItems = bl.map(([k, b]) => ({ label:lab(k), value:Math.round(b.min), title:`${lab(k)}: ${fmtDur(b.min)}` }));
+  const allUsers = new Set(); let tMin = 0, tActs = 0;
+  byDay.forEach(o => { o.users.forEach(u => allUsers.add(u)); tMin += o.min; tActs += o.acts; });
+  const wk = Array(7).fill(0).map(() => ({ users:0, min:0 }));
+  for (const [d, o] of byDay) { const i = dayDate(d).getDay(); wk[i].users += o.users.size; wk[i].min += o.min; }
+  const wkMax = Math.max(1, ...wk.map(w => w.users));
+  const order = [6, 0, 1, 2, 3, 4, 5];
+  return `
+    <div class="cards">
+      <div class="kpi"><b>${allUsers.size}</b><span>${s.wMany} نشطين</span></div>
+      <div class="kpi"><b>${fmtDur(tMin)}</b><span>إجمالي وقت الاستخدام</span></div>
+      <div class="kpi"><b>${tActs}</b><span>إجمالي الأنشطة</span></div>
+      <div class="kpi"><b>${allUsers.size ? fmtDur(tMin / allUsers.size) : '—'}</b><span>متوسط الوقت للنشط</span></div>
+    </div>
+    <div class="panel"><h3>👥 عدد النشطين ${weekly ? 'في كل أسبوع' : 'في كل يوم'}</h3>${barChart(usersItems)}</div>
+    <div class="panel"><h3>⏱ إجمالي الوقت (بالدقايق) ${weekly ? 'في كل أسبوع' : 'في كل يوم'}</h3>${barChart(minItems)}</div>
+    <div class="panel"><h3>📅 النشاط حسب أيام الأسبوع</h3>
+      ${order.map(i => `<div class="hb"><span>${WEEKDAYS[i]}</span><div class="tr"><i style="width:${Math.round(wk[i].users / wkMax * 100)}%"></i></div><span>${wk[i].users}</span></div>`).join('')}
+      <div class="note">الرقم = مجموع النشطين في اليوم ده خلال الفترة.</div></div>
+    <div class="panel"><h3>🧒 حضور المخدومين حسب الفصل</h3>${attendanceBlock(s)}</div>`;
+}
+function attendanceBlock(s) {
+  if (!s.att) return `<button class="btn sm pri" data-act="loadAtt">حمّل حضور الفصول للفترة دي</button><div class="note">بيستخدم عدّ سريع (قراءة واحدة لكل ألف سجل تقريبًا) — مش بيحمّل السجلات نفسها.</div>`;
+  if (s.att.error) return `<div class="err">${esc(s.att.error)}</div><button class="btn sm" data-act="loadAtt">إعادة المحاولة</button>`;
+  const a = s.att;
+  return `<table class="t"><tr><th>الفصل</th><th>المخدومين</th><th>سجلات الحضور</th><th>متوسط أسبوعي</th><th>≈ نسبة الحضور</th></tr>
+    ${a.rows.map(r => `<tr><td>${esc(r.label)}</td><td>${r.students}</td><td>${r.records}</td><td>${r.perWeek.toFixed(1)}</td><td>${r.students ? Math.min(100, Math.round(r.perWeek / r.students * 100)) + '%' : '—'}</td></tr>`).join('')}</table>
+    <div class="note">النسبة تقريبية = متوسط الحضور الأسبوعي ÷ عدد المخدومين، على أساس ${a.weeks.toFixed(1)} أسبوع في الفترة وفصل بيجتمع مرة في الأسبوع. ${fmtShortDate(dayDate(a.from))} ← ${fmtShortDate(dayDate(a.to))}</div>`;
+}
+async function loadAttendance(s) {
+  const [aDay, bDay] = periodDays(s), weeks = Math.max(1, ((dayDate(bDay) - dayDate(aDay)) / 864e5 + 1) / 7);
+  s.att = { loading:true, rows:[], weeks, from:aDay, to:bDay };
+  const box = $('#tabbody'); if (box) { /* إعادة رسم الحالة */ }
+  try {
+    const classes = [...s.classes.values()].filter(c => c.id !== SERVANTS_CLASS_ID && c.id !== 'parents').sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const rows = await Promise.all(classes.map(async c => {
+      const [st, at] = await Promise.all([
+        getCountFromServer(query(collection(s.db, 'students'), where('classSection', '==', c.id))),
+        getCountFromServer(query(collection(s.db, 'attendance'), where('classSection', '==', c.id), where('date', '>=', aDay), where('date', '<=', bDay)))
+      ]);
+      const records = at.data().count;
+      return { label:classLabel(s, c.id), students:st.data().count, records, perWeek:records / weeks };
+    }));
+    s.att = { rows, weeks, from:aDay, to:bDay };
+  } catch (e) { console.error(e); s.att = { error:'تعذّر حساب الحضور (' + (e.code || e.message) + ')', rows:[] }; }
+  if (cur() === s && s.ui.tab === 'analysis') renderTabBody();
 }
 
+/* ---------- تبويب الطلبات ---------- */
+function requestCard(s, v, withBadge) {
+  const rn = roleNames(s, v), busy = s.ui.busy[v.id];
+  return `<div class="item"><div class="detail" style="background:transparent;border:0">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+      <div class="avatar">${esc([...(v.name || v.email || '?')][0])}</div>
+      <div class="grow"><div class="name">${esc(v.name || '—')}</div><div class="muted">طلب ${fmtDateTime(toDate(v.createdAt))}</div></div>
+      ${withBadge ? `<span class="badge acc">${s.emoji} ${s.sub}</span>` : ''}
+    </div>
+    <div class="kv">
+      <div><b>✉️ الإيميل</b>${esc(v.email || '—')}</div>
+      <div><b>📞 التليفون</b>${esc(v.phone || '—')}</div>
+      <div><b>🎂 تاريخ الميلاد</b>${esc(v.dob || '—')}</div>
+      <div><b>🏠 العنوان</b>${esc(v.address || '—')}</div>
+      <div><b>📚 الفصول</b>${esc(classesText(s, v))}</div>
+      <div><b>🎭 الدور</b>${esc(roleLabel(s, v))}${rn ? ' · ' + esc(rn) : ''}</div>
+    </div>
+    <div class="actions">
+      <button class="btn ok" data-act="approve" data-s="${s.id}" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✓ قبول</button>
+      <button class="btn bad" data-act="reject" data-s="${s.id}" data-id="${esc(v.id)}" ${busy ? 'disabled' : ''}>✕ رفض</button>
+    </div></div></div>`;
+}
+function requestsView(s) {
+  if (!s.requests.length) return `<div class="empty">✅ مفيش طلبات انضمام معلّقة في ${s.title}</div>`;
+  return `<div class="note" style="margin:0 2px 8px">${s.requests.length} طلب انضمام معلّق</div>` + s.requests.map(v => requestCard(s, v, false)).join('');
+}
+async function renderAllReq() {
+  state.v = 'allreq';
+  const list = adminServices();
+  $('#app').innerHTML = `<div class="wrap"><div class="bar"><button class="btn sm" data-act="home">← الرئيسية</button><div class="grow"><b style="font-size:1.15rem">📨 كل طلبات الانضمام</b></div><button class="btn sm" data-act="refresh">🔄 تحديث</button></div><div id="allbody"><div class="empty"><span class="spin"></span>جاري التحميل…</div></div></div>`;
+  if (!list.length) { $('#allbody').innerHTML = `<div class="empty">سجّل دخول في خدمة واحدة على الأقل من الرئيسية الأول.</div>`; return; }
+  try { await Promise.all(list.map(async s => { await loadBase(s); await loadRequests(s); })); } catch (e) { console.error(e); }
+  if (state.v !== 'allreq') return;
+  const all = list.flatMap(s => s.requests.map(v => ({ s, v }))).sort((a, b) => (toDate(b.v.createdAt)?.getTime() || 0) - (toDate(a.v.createdAt)?.getTime() || 0));
+  const missing = Object.values(SERVICES).filter(s => !s.admin);
+  $('#allbody').innerHTML = (all.length ? `<div class="note" style="margin:0 2px 8px">${all.length} طلب معلّق</div>` + all.map(({ s, v }) => requestCard(s, v, true)).join('') : `<div class="empty">✅ مفيش طلبات انضمام معلّقة</div>`)
+    + (missing.length ? `<div class="note">مش داخل في: ${missing.map(s => s.title).join('، ')} — سجّل دخول فيها من الرئيسية عشان تظهر طلباتها هنا.</div>` : '');
+}
+
+/* ---------- قبول / رفض / تعديل / حذف ---------- */
 async function callWorker(s, path, body) {
   try {
     const t = await s.auth.currentUser.getIdToken();
@@ -552,24 +809,23 @@ async function callWorker(s, path, body) {
     return { ok:r.ok, status:r.status, data };
   } catch (e) { console.warn('worker', e); return null; }
 }
-function roleIdsOf(v) { return Array.isArray(v.roleIds) && v.roleIds.length ? v.roleIds : (v.roleId ? [v.roleId] : []); }
 async function approveReq(s, id) {
   const v = s.requests.find(x => x.id === id); if (!v) return;
-  s.ui.busy[id] = true; renderTabBody();
+  s.ui.busy[id] = true; refreshView();
   try {
     await updateDoc(doc(s.db, 'servants', id), { status:'approved' });
     callWorker(s, '/servant-decision', { targetUid:id, decision:'approved' });
     if (v.name) for (const rid of roleIdsOf(v)) { try { await updateDoc(doc(s.db, 'roles', rid), { pendingNames:arrayRemove(v.name) }); } catch (_) {} }
     toast('تم قبول ' + (v.name || 'الطلب') + ' ✓');
     const mv = s.servants.find(x => x.id === id); if (mv) mv.status = 'approved'; else s.servants.push({ ...v, status:'approved' });
-    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length;
+    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length; s.summary = null;
   } catch (e) { console.error(e); toast('مش مسموحلك تقبل الطلب ده — راجع صلاحيات Firestore', true); }
-  delete s.ui.busy[id]; renderService(s);
+  delete s.ui.busy[id]; refreshView();
 }
 async function rejectReq(s, id) {
   const v = s.requests.find(x => x.id === id); if (!v) return;
   if (!confirm('هترفض طلب "' + (v.name || v.email) + '"؟ الحساب هيتمسح.')) return;
-  s.ui.busy[id] = true; renderTabBody();
+  s.ui.busy[id] = true; refreshView();
   try {
     await Promise.race([callWorker(s, '/servant-decision', { targetUid:id, decision:'rejected' }), new Promise(r => setTimeout(r, 4000))]);
     const r = await callWorker(s, '/delete-servant', { targetUid:id });
@@ -577,29 +833,93 @@ async function rejectReq(s, id) {
     if (!(r && r.ok)) { await deleteDoc(doc(s.db, 'servants', id)); msg = 'تم رفض الطلب (اتمسح من الداتا بيز بس — حساب الدخول لسه موجود)'; }
     if (v.name) for (const rid of roleIdsOf(v)) { try { await updateDoc(doc(s.db, 'roles', rid), { pendingNames:arrayUnion(v.name) }); } catch (_) {} }
     toast(msg);
-    s.servants = s.servants.filter(x => x.id !== id);
-    s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length;
+    s.servants = s.servants.filter(x => x.id !== id); s.requests = s.requests.filter(x => x.id !== id); s.pending = s.requests.length;
   } catch (e) { console.error(e); toast('مش مسموحلك ترفض الطلب ده — راجع صلاحيات Firestore', true); }
-  delete s.ui.busy[id]; renderService(s);
+  delete s.ui.busy[id]; refreshView();
+}
+function derivePerms(s, list) {
+  if (list.some(r => r.isAdmin)) return { role:'admin', assignedClass:'', supervisorClass:'' };
+  const all = new Set(), sup = new Set();
+  list.forEach(r => (r.classes || []).forEach(c => { all.add(c); if (s.supervisors && r.isSupervisor) sup.add(c); }));
+  return { role: sup.size ? 'supervisor' : 'servant', assignedClass:[...all].join(','), supervisorClass:[...sup].join(',') };
+}
+function closeModal() { const m = $('#modal'); if (m) m.innerHTML = ''; }
+function openRolesModal(s, id) {
+  const v = s.servants.find(x => x.id === id); if (!v) return;
+  const have = new Set(roleIdsOf(v)), roles = [...s.roles.values()].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
+  $('#modal').innerHTML = `<div class="ov" data-act="closeModal"><div class="modal" data-keep="1">
+    <h3>🎭 أدوار ${esc(v.name || '')}</h3>
+    <div class="muted" style="margin-bottom:10px">الصلاحيات والفصول بتتحسب من الأدوار المختارة، زي ما بتحصل جوه البرنامج.</div>
+    ${roles.length ? roles.map(r => `<label class="chk"><input type="checkbox" value="${esc(r.id)}" ${have.has(r.id) ? 'checked' : ''}>
+      <span><b>${esc(r.name || r.id)}</b>
+      <span class="chips">${r.isAdmin ? '<span class="badge acc">أدمن</span>' : ''}${r.isSupervisor ? '<span class="badge warn">مسؤول</span>' : ''}${(r.classes || []).map(c => `<span class="badge">${esc(classLabel(s, c))}</span>`).join('')}</span></span></label>`).join('') : '<div class="empty">مفيش أدوار متعرّفة في البرنامج.</div>'}
+    <div class="actions"><button class="btn pri" data-act="saveRoles" data-s="${s.id}" data-id="${esc(id)}">حفظ</button><button class="btn" data-act="closeModal">إلغاء</button></div>
+  </div></div>`;
+}
+async function saveRoles(s, id) {
+  const v = s.servants.find(x => x.id === id); if (!v) return;
+  const ids = [...document.querySelectorAll('#modal input[type=checkbox]:checked')].map(i => i.value);
+  const perms = derivePerms(s, ids.map(i => s.roles.get(i)).filter(Boolean));
+  const txt = perms.role === 'admin' ? 'أدمن (كل الفصول)' : `${perms.role === 'supervisor' ? 'مسؤول فصل' : s.wOne} — ${perms.assignedClass ? classIds(perms.assignedClass).map(c => classLabel(s, c)).join('، ') : 'بدون فصل'}`;
+  if (!confirm(`هتحفظ الأدوار؟\nالنتيجة: ${txt}`)) return;
+  const data = { roleIds:ids, roleId:ids[0] || '', ...perms };
+  try { await updateDoc(doc(s.db, 'servants', id), data); Object.assign(v, data); toast('اتحفظت الأدوار ✓'); closeModal(); refreshView(); }
+  catch (e) { console.error(e); toast('مش مسموحلك تعدّل — راجع صلاحيات Firestore', true); }
+}
+async function deleteServant(s, id) {
+  const v = s.servants.find(x => x.id === id); if (!v) return;
+  if (isPrimary(v.email) || (s.user && s.user.uid === id)) { toast('الحساب ده محمي', true); return; }
+  if (!confirm(`هتحذف "${v.name || v.email}"؟ هيتمسح من الداتا بيز وهيفقد صلاحية الدخول.`)) return;
+  try {
+    const r = await callWorker(s, '/delete-servant', { targetUid:id });
+    if (!(r && r.ok)) { await deleteDoc(doc(s.db, 'servants', id)); toast('اتمسح من الداتا بيز (حساب الدخول لسه موجود)'); } else toast('تم الحذف ✓');
+    s.servants = s.servants.filter(x => x.id !== id); s.summary = null; s.ui.expanded = null; refreshView();
+  } catch (e) { console.error(e); toast('مش مسموحلك تحذف — راجع صلاحيات Firestore', true); }
+}
+
+/* ---------- التصدير ---------- */
+function exportServants(s) {
+  const list = servantsData(s), [a, b] = periodDays(s);
+  const rows = [['#', 'الاسم', 'الدور', 'الفصول', 'التليفون', 'الإيميل', 'تاريخ الميلاد', 'عدد الأنشطة', 'مرات الفتح', 'أيام النشاط', 'الوقت (دقيقة)', 'آخر نشاط']];
+  list.forEach((v, i) => { const st = statFor(s, v); rows.push([i + 1, v.name, roleLabel(s, v), classesText(s, v), v.phone, v.email, v.dob, st ? st.work : 0, st ? st.opens : 0, st ? st.days : 0, st ? Math.round(st.minutes) : 0, st && st.last ? fmtDateTime(st.last) : '']); });
+  downloadCSV(`${s.sub}-${s.wMany}-${a}_${b}.csv`, rows);
+}
+function exportActs(s) {
+  const list = activityData(s), [a, b] = periodDays(s);
+  const rows = [['التاريخ', 'الوقت', 'الاسم', 'النشاط', 'التفاصيل']];
+  list.forEach(l => rows.push([dayStr(l.ts), fmtTime(l.ts), l.name, l.action, l.detail]));
+  downloadCSV(`${s.sub}-الأنشطة-${a}_${b}.csv`, rows);
 }
 
 /* ================= الأحداث ================= */
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
-  const a = el.dataset.act, s = cur();
+  const a = el.dataset.act;
+  if (a === 'closeModal') { if (el.classList.contains('ov') && e.target.closest('[data-keep]')) return; closeModal(); return; }
+  const s = el.dataset.s ? SERVICES[el.dataset.s] : cur();
   if (a === 'reset') { e.preventDefault(); return s && doReset(s); }
-  if (a === 'open') { const t = SERVICES[el.dataset.s]; if (t) go({ v:'svc', s:t.id }); return; }
+  if (a === 'open') { if (s) go({ v:'svc', s:s.id }); return; }
   if (a === 'home') { if (state.v === 'home') return; go({ v:'home', s:null }); return; }
+  if (a === 'allreq') { go({ v:'allreq', s:null }); return; }
+  if (a === 'refresh') {
+    if (state.v === 'allreq') { renderAllReq(); return; }
+    if (!s) return; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.summary = null; s.att = null; renderService(s); return;
+  }
   if (!s) return;
-  if (a === 'logout') { try { await signOut(s.auth); } catch (_) {} s.user = null; s.admin = false; s.servantsLoaded = false; s.logsKey = ''; s.requestsLoaded = false; s.pending = null; go({ v:'home', s:null }); return; }
-  if (a === 'refresh') { s.servantsLoaded = false; s.logsKey = ''; renderService(s); return; }
+  if (a === 'logout') { try { await signOut(s.auth); } catch (_) {} s.user = null; s.admin = false; s.servantsLoaded = false; s.logsKey = ''; s.usageKey = ''; s.pending = null; s.summary = null; go({ v:'home', s:null }); return; }
   if (a === 'tab') { s.ui.tab = el.dataset.t; s.ui.expanded = null; renderService(s); return; }
-  if (a === 'applyPeriod') { s.logsKey = ''; renderService(s); return; }
+  if (a === 'applyPeriod') { s.logsKey = ''; s.usageKey = ''; s.att = null; renderService(s); return; }
   if (a === 'toggle') { const id = el.dataset.id; s.ui.expanded = s.ui.expanded === id ? null : id; renderTabBody(); return; }
   if (a === 'viewActs') { s.ui.actServant = el.dataset.id; s.ui.actAction = ''; s.ui.actQ = ''; s.ui.actShown = 200; s.ui.tab = 'activity'; renderService(s); return; }
   if (a === 'moreActs') { s.ui.actShown += 300; $('#listwrap').innerHTML = activityList(s); return; }
   if (a === 'approve') return approveReq(s, el.dataset.id);
   if (a === 'reject') return rejectReq(s, el.dataset.id);
+  if (a === 'editRoles') return openRolesModal(s, el.dataset.id);
+  if (a === 'saveRoles') return saveRoles(s, el.dataset.id);
+  if (a === 'delServant') return deleteServant(s, el.dataset.id);
+  if (a === 'exportServants') return exportServants(s);
+  if (a === 'exportActs') return exportActs(s);
+  if (a === 'loadAtt') { el.disabled = true; el.textContent = 'جاري الحساب…'; return loadAttendance(s); }
 });
 document.addEventListener('submit', e => { const f = e.target.closest('[data-form="login"]'); if (!f) return; e.preventDefault(); const s = cur(); if (s) doLogin(s); });
 document.addEventListener('input', e => {
@@ -616,12 +936,13 @@ document.addEventListener('change', e => {
     if (f === 'preset') {
       if (e.target.value === 'custom') {
         if (!s.period.from) { const t = new Date(), f0 = new Date(t.getTime() - 7 * 864e5); s.period.from = toInputDT(f0); s.period.to = toInputDT(t); }
-        renderService(s);
-      } else { s.logsKey = ''; renderService(s); }
+        s.att = null; renderService(s);
+      } else { s.logsKey = ''; s.usageKey = ''; s.att = null; renderService(s); }
     }
     return;
   }
-  s.ui[k] = e.target.value; s.ui.actShown = 200; s.ui.expanded = null; renderTabBody();
+  s.ui[k] = e.target.value; s.ui.actShown = 200; s.ui.expanded = null;
+  if (s.ui.tab === 'servants') { const w = $('#listwrap'); if (w) w.innerHTML = servantsList(s); else renderTabBody(); } else renderTabBody();
 });
 
 /* ================= التشغيل ================= */
@@ -629,9 +950,12 @@ document.addEventListener('change', e => {
   await Promise.race([Promise.all(Object.values(SERVICES).map(watchAuth)), new Promise(r => setTimeout(r, 5000))]);
   const h = history.state;
   if (h && h.v === 'svc' && SERVICES[h.s]) { state.v = 'svc'; state.s = h.s; }
+  else if (h && h.v === 'allreq') state.v = 'allreq';
   history.replaceState({ v:state.v, s:state.s }, '');
   render();
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
+window.__dash = { SERVICES, state }; // للاختبار فقط
 </script>
 </body>
 </html>
